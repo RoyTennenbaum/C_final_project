@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -ansi -Wall -pedantic -g
+CFLAGS = -ansi -Wall -pedantic
 SRC = Source
 HDR = Headers
 OBJ = obj
