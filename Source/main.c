@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../list-data-structure.h"
+#include "../Headers/list-data-structure.h"
 int main() {
     int ch;
     int running = TRUE;

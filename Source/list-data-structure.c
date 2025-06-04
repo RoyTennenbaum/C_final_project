@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../list-data-structure.h"
+#include "../Headers/list-data-structure.h"
 /**
  * Insert a node at the beginning of the list.
  * Allocates memory and sets the new node as start.
