@@ -35,3 +35,15 @@ quaternaryBaseNum decimalToQuat(int decimal)
     }
     return quaternary;
 }
+
+char *quaternaryToLetters(quaternaryBaseNum quaternary)
+{
+    int length = quaternary.length;
+    char *str = malloc(sizeof(char) * (length + 1));
+    int i;
+
+    for (i = 0; i < length; i++)
+        str[i] = quaternary.digits[i] + 'a';
+    str[length] = '\0';
+    return str;
+}
