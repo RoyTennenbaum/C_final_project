@@ -8,25 +8,25 @@ typedef struct{
 typedef struct{
     unsigned short aer_bits :2;
     unsigned short value_bits :8;
-} immediateAddressWord;
+} immediateAddressingWord;
 
 typedef struct{
     unsigned short aer_bits :2;
     unsigned short value_bits :8;
-} directAddressWord;
+} directAddressingWord;
 
 typedef struct{
     unsigned short aer_bits :2;
     unsigned short label_address_bits :8;
-} matrixAddressFirstWord;
+} matrixAddressingFirstWord;
 
 typedef struct{
     unsigned short aer_bits :2;
-    unsigned short row_reg_bits :3;
-    :1;
     unsigned short col_reg_bits :3;
     :1;
-} matrixAddressSecondWord;
+    unsigned short row_reg_bits :3;
+    :1;
+} matrixAddressingSecondWord;
 
 typedef struct{
     unsigned short aer_bits :2;
@@ -34,4 +34,4 @@ typedef struct{
     :1;
     unsigned short src_reg_bits :3;
     :1;
-} registerAddressCommonWord;
+} registerAddressingWord;
