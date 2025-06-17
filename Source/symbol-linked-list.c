@@ -56,26 +56,27 @@ void insert(symbolTable *pstart) {
  * @param pstart Pointer to the pointer of the start node.
  */
 void search(symbolTable start) {
-    int item;
+    char label[ROW_SIZE];
     symbolTable ptr = start;
-    int loc = 1;
+    int count = 1;
     int found = FALSE;
 
-    printf("Enter ITEM to be searched: ");
-    scanf("%d", &item);
+    /* testing */
+    printf("Enter symbol label to be searched: ");
+    scanf("%s", label);
 
     while (ptr != NULL && !found) {
-        if (ptr->info == item) {
-            printf("Item %d is present at location %d\n", item, loc);
-            found = TRUE;
+        if (strcmp((*ptr).label, label)) {
+            ptr = (*ptr).next;
+            count++;
         } else {
-            ptr = ptr->next;
-            loc++;
+            printf("label %s is present in symbol number %d\n", label, count);
+            found = TRUE;
         }
     }
 
     if (!found) {
-        printf("Item is not present in the list\n");
+        printf("symbol is not present in the list.\n");
     }
 }
 

@@ -1,9 +1,9 @@
 #include <stdio.h>
 
 #define ROW_SIZE 80
-enum { FALSE, TRUE};
+enum { FALSE, TRUE };
 
-typedef struct symbol{
+typedef struct symbol {
     char *label;
     int address;
     struct symbol *next;
@@ -15,15 +15,9 @@ typedef struct symbol{
 typedef symbol *symbolTable;
 
 /* testing with main.c */
-typedef enum {
-    INSERT = 1,
-    SEARCH,
-    DISPLAY,
-    EXIT_PROGRAM
-} MenuChoices;
+typedef enum { INSERT = 1, SEARCH, DISPLAY, EXIT_PROGRAM } MenuChoices;
 
 /* Function prototypes */
 void insert(symbolTable *pstart); /* insert symbol */
 void search(symbolTable start); /* search for symbol */
 void display(symbolTable start); /* for debugging */
-int get_length(symbolTable start); /* maybe */
