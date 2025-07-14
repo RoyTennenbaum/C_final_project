@@ -47,8 +47,8 @@ typedef enum {
 } MenuChoices;
 
 /* Function prototypes */
-void insert(symbolTable *pstart); /* insert symbol */
-void search(symbolTable start); /* search for symbol */
+void insert(symbolTable *pstart, char *label, int address); /* insert symbol */
+void search(symbolTable start, char *label); /* search for symbol */
 void display(symbolTable start); /* for debugging */
 void insertMac(macroTable *pstartM, char *label, char *body); /* insert macro */
 macro *searchMac(macroTable startM, char *label); /* search for macro */

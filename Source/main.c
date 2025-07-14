@@ -20,11 +20,11 @@ int main() {
         switch (ch) {
 
         case INSERT:
-            insert(&start); /* To be edited */
+            insert(&start, "test symbol", 100);
             break;
 
         case SEARCH:
-            search(start);
+            search(start, "test symbol");
             break;
 
         case DISPLAY:

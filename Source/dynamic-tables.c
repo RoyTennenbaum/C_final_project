@@ -7,18 +7,18 @@
  * Insert a node at the end of the list.
  * Traverses the list to the last node and appends the new node.
  */
-void insert(symbolTable *pstart) {
-    char label[LINE_SIZE + 1];
-    int address;
+void insert(symbolTable *pstart, char *label, int address) {
+    // char label[LINE_SIZE + 1];
+    // int address;
     symbol *ptr = NULL;
     symbol *newSymbol = NULL;
     int success = FALSE;
 
-    /* Testing */
-    printf("Enter label: ");
-    scanf("%s", label);
-    printf("Enter address: ");
-    scanf("%d", &address);
+    // /* Testing */
+    // printf("Enter label: ");
+    // scanf("%s", label);
+    // printf("Enter address: ");
+    // scanf("%d", &address);
 
     /* Allocate memory for new node in the list */
     newSymbol = (symbol *)malloc(sizeof(symbol));
@@ -59,15 +59,15 @@ void insert(symbolTable *pstart) {
  * Prints the location if found.
  * @param pstart Pointer to the pointer of the start node.
  */
-void search(symbolTable start) {
-    char label[LINE_SIZE + 1];
+void search(symbolTable start, char *label) {
+    // char label[LINE_SIZE + 1];
     symbolTable ptr = start;
     int count = 1;
     int found = FALSE;
 
-    /* testing */
-    printf("Enter symbol label to be searched: ");
-    scanf("%s", label);
+    // /* testing */
+    // printf("Enter symbol label to be searched: ");
+    // scanf("%s", label);
 
     while (ptr != NULL && !found) {
         if (strcmp((*ptr).label, label) != 0) {
