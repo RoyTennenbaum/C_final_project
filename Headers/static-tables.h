@@ -1,5 +1,13 @@
 /* operations table - array */
-typedef struct {
+typedef struct
+{
     char *name;
     int number;
-} operation; /* todo: create operationTable */
+} operation, operationTable[16];
+
+/* directives table - array */
+typedef struct
+{
+    char *name;
+    int number;
+} directive, directiveTable[5];
