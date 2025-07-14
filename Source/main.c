@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include "../Headers/dynamic-tables.h"
 int main(int argc, char *argv[]) {
-    int running = TRUE;
     symbolTable start = NULL;
     macroTable startM = NULL;
     operationTable opTable = {
@@ -24,6 +23,7 @@ int main(int argc, char *argv[]) {
 
     // /* For re-testing later */
     // int ch;
+    //int running = TRUE;
     // while (running) {
     //     printf(
     //         "\n%d. Insert Symbol\n%d. Search Symbol\n%d. Display Symbols\n%d. "
