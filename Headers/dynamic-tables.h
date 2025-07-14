@@ -50,6 +50,6 @@ typedef enum {
 void insert(symbolTable *pstart); /* insert symbol */
 void search(symbolTable start); /* search for symbol */
 void display(symbolTable start); /* for debugging */
-void insertMac(macroTable *pstartM); /* insert macro */
-void searchMac(macroTable startM); /* search for macro */
+void insertMac(macroTable *pstartM, char *label, char *body); /* insert macro */
+macro *searchMac(macroTable startM, char *label); /* search for macro */
 void displayMac(macroTable startM); /* for debugging */

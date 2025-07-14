@@ -101,18 +101,19 @@ void display(symbolTable start) {
     }
 }
 
-void insertMac(macroTable *pstartM) {
-    char label[LINE_SIZE + 1];
-    char body[1000]; /* temp only for testing, should be an arg in the func */
+// void insertMac(macroTable *pstartM) {
+void insertMac(macroTable *pstartM, char *label, char *body) {
+    // char label[LINE_SIZE + 1]; /* upto 30 chars */
+    // char body[1000]; /* temp only for testing, should be an arg in the func */
     macro *ptr = NULL;
     macro *newMacro = NULL;
     int success = FALSE;
 
-    /* testing */
-    printf("Enter macro label: ");
-    scanf("%s", label);
-    printf("Enter macro body: ");
-    scanf("%s", body);
+    // /* testing */
+    // printf("Enter macro label: ");
+    // scanf("%s", label);
+    // printf("Enter macro body: ");
+    // scanf("%s", body);
 
     /* Allocate memory for new node in the list */
     newMacro = (macro *)malloc(sizeof(macro));
@@ -149,15 +150,15 @@ void insertMac(macroTable *pstartM) {
     }
 }
 
-void searchMac(macroTable startM) {
-    char label[LINE_SIZE + 1];
+macro *searchMac(macroTable startM, char *label) {
+    // char label[LINE_SIZE + 1];
     macroTable ptr = startM;
     int count = 1;
     int found = FALSE;
 
-    /* testing */
-    printf("Enter macro label to be searched: ");
-    scanf("%s", label);
+    // /* testing */
+    // printf("Enter macro label to be searched: ");
+    // scanf("%s", label);
 
     while (ptr != NULL && !found) {
         if (strcmp((*ptr).label, label) != 0) {
@@ -166,12 +167,14 @@ void searchMac(macroTable startM) {
         } else {
             printf("label %s is present in macro number %d\n", label, count);
             found = TRUE;
+            return ptr;
         }
     }
 
     if (!found) {
         printf("macro is not present in the list.\n");
     }
+    return NULL;
 }
 
 void displayMac(macroTable startM) {

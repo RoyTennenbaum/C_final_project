@@ -10,7 +10,7 @@ int main() {
     while (running) {
         printf(
             "\n%d. Insert Symbol\n%d. Search Symbol\n%d. Display Symbols\n%d. "
-            "Insert Macro\n%d. Search Macro\n%d. Display Macros\n%d Exit\n",
+            "Insert Macro\n%d. Search Macro\n%d. Display Macros\n%d. Exit\n",
             INSERT, SEARCH, DISPLAY, INSERT_MAC, SEARCH_MAC, DISPLAY_MAC,
             EXIT_PROGRAM);
 
@@ -20,7 +20,7 @@ int main() {
         switch (ch) {
 
         case INSERT:
-            insert(&start);
+            insert(&start); /* To be edited */
             break;
 
         case SEARCH:
@@ -32,11 +32,11 @@ int main() {
             break;
 
         case INSERT_MAC:
-            insertMac(&startM);
+            insertMac(&startM, "test label", "test body");
             break;
 
         case SEARCH_MAC:
-            searchMac(startM);
+            searchMac(startM, "test label");
             break;
 
         case DISPLAY_MAC:
