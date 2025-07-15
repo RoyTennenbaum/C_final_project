@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../Headers/dynamic-tables.h"
+#include "../Headers/static-tables.h"
 int main(int argc, char *argv[]) {
     symbolTable start = NULL;
     macroTable startM = NULL;
@@ -16,6 +17,7 @@ int main(int argc, char *argv[]) {
                                {".extern", 4}};
 
     for (int i = 1; i < argc; i++) {
+        /* delete tables */
         preAssembler(argv[i]);
         firstIteration(argv[i]);
         secondIteration(argv[i]);
