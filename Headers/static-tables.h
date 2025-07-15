@@ -1,13 +1,15 @@
-/* operations table - array */
-typedef struct
-{
-    char *name;
-    int number;
-} operation, operationTable[16];
+#define OP_TABLE_SIZE 16
+#define DIR_TABLE_SIZE 5
 
-/* directives table - array */
-typedef struct
-{
+typedef struct {
     char *name;
     int number;
-} directive, directiveTable[5];
+} instruction,
+
+    // define operation table array
+    typedef instruction operation, operationTable[OP_TABLE_SIZE];
+
+// define directive table array
+typedef instruction directive, directiveTable[DIR_TABLE_SIZE];
+
+int isInTable(const instruction *table, int tableSize, const char *str);
