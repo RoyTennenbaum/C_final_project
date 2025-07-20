@@ -1,19 +1,28 @@
 #include "../Headers/static-tables.h"
 
-int isOperation(const char *str) {
+operation searchOperation(const char *str) {
     int i;
     for (i = 0; i < OP_TABLE_SIZE; i++) {
         if (strcmp(operationTable[i].name, str) == 0)
-            return 1;
+            return operationTable[i];
     }
-    return 0;
+    return NULL;
+}
+
+directive searchDirective(const char *str) {
+    int i;
+    for (i = 0; i < DIR_TABLE_SIZE; i++) {
+        if (strcmp(directiveTable[i], str) == 0) {
+            return directiveTable[i];
+        }
+    }
+    return NULL;
+}
+
+int isOperation(const char *str) {
+    return (searchOperation(str) != NULL) ? 1 : 0;
 }
 
 int isDirective(const char *str) {
-    int i;
-    for (i = 0; i < DIR_TABLE_SIZE; i++) {
-        if (strcmp(directiveTable[i].name, str) == 0)
-            return 1;
-    }
-    return 0;
+    return (searchDirective(str) != NULL) ? 1 : 0;
 }

@@ -1,26 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../Headers/dynamic-tables.h"
+#include "../Headers/global.h"
 #include "../Headers/static-tables.h"
 int main(int argc, char *argv[]) {
-    symbolTable start = NULL;
-    macroTable startM = NULL;
+    symbolTable symbolTableHead = NULL;
+    macroTable macroTableHead = NULL;
     operationTable opTable = {
         {"mov", 0},  {"cmp", 1},  {"add", 2},  {"sub", 3},
         {"not", 4},  {"clr", 5},  {"lea", 6},  {"inc", 7},
         {"dec", 8},  {"jmp", 9},  {"bne", 10}, {"red", 11},
         {"prn", 12}, {"jsr", 13}, {"rts", 14}, {"stp", 15}};
-    directiveTable dirTable = {{".data", 0},
-                               {".string", 1},
-                               {".mat", 2},
-                               {".entry", 3},
-                               {".extern", 4}};
+    directiveTable dirTable = {".data", ".string", ".mat", ".entry", ".extern"};
+    registers regs = {{"r0", 0}, {"r1", 1}, {"r2", 2}, {"r3", 3},
+                      {"r4", 4}, {"r5", 5}, {"r6", 6}, {"r7", 7}};
+
+    assemblerContext context = {&symbolTableHead, &macroTableHead, &opTable,
+                                &dirTable, &regs};
 
     for (int i = 1; i < argc; i++) {
         /* delete tables */
-        preAssembler(argv[i]);
-        firstIteration(argv[i]);
-        secondIteration(argv[i]);
+        preAssembler(argv[i], context);
+        firstIteration(argv[i], context);
+        secondIteration(argv[i], context);
     }
 
     // /* For re-testing later */
