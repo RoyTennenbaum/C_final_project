@@ -13,7 +13,7 @@ typedef directive directiveTable[DIR_TABLE_SIZE];
 typedef struct {
     char *name;
     int number;
-} register, registers[REGISTER_NUM];
+} registerInfo, registers[REGISTER_NUM];
 
 operation searchOperation(const char *str);
 directive searchDirective(const char *str);
