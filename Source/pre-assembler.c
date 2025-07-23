@@ -1,46 +1,43 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "../Headers/global.h"
 #include "../Headers/pre-assembler.h"
 #include "../Headers/dynamic-tables.h"
 #include "../Headers/static-tables.h"
-#include "../Headers/global.h"
 
-#define LINE_BUFF 83
-#define LABEL_BUFF 31
-
-void preAssembler(char *srcFileName, assemblerContext context)
+char *preAssembler(char *srcFileName, assemblerContext context)
 {
     FILE *amFile;
     FILE *srcFile;
-    char *amContent = calloc(LINE_BUFF, sizeof(char));
+    char *amContent = calloc(LINE_SIZE, sizeof(char));
     char *prefix;
     char *amFileName;
     int lineNum = 0;
-    char line[LINE_BUFF] = {'\0'};
+    char line[LINE_SIZE] = {'\0'};
     char *arg;
     int state = NORMAL_LINE;
     char *macroLabel;
     char *macroBody;
     int macroBodyLine;
-    int macroFlag = NO;
+    int macroFlag = FALSE;
     macro *tempMacro;
-    int errorFlag = NO;
+    int errorFlag = FALSE;
 
     srcFile = fopen(srcFileName, "r");
 
-    while (fgets(line, LINE_BUFF, srcFile) != NULL)
+    while (fgets(line, LINE_SIZE, srcFile) != NULL)
     {
         lineNum++;
         int state = NORMAL_LINE;
-        if (strlen(line) >= LINE_BUFF - 1)
+        if (strlen(line) >= LINE_SIZE - 1)
         {
-            errorFlag = YES;
+            errorFlag = TRUE;
             /*error*/
         }
-        amContent = realloc(amContent, lineNum * LINE_BUFF * sizeof(char));
+        amContent = realloc(amContent, lineNum * LINE_SIZE * sizeof(char));
         arg = strtok(line, " ");
-        if ((tempMacro = searchMac(context->macroTable, arg)) != NULL)
+        if ((tempMacro = searchMac(context.macroTable, arg)) != NULL)
             state = MACRO_SPREAD;
         else if (strcmp(arg, "mcro") == 0)
             state = MACRO_DEFINE;
@@ -59,36 +56,36 @@ void preAssembler(char *srcFileName, assemblerContext context)
             break;
 
         case MACRO_DEFINE:
-            macroFlag = YES;
+            macroFlag = TRUE;
             arg = strtok(NULL, " ");
 
             if (arg == NULL)
             {
-                errorFlag = YES;
+                errorFlag = TRUE;
                 /*error*/
-                macroFlag = NO;
+                macroFlag = FALSE;
             }
-            else if (!isValidLabel(arg, context))
+            else if (!isValidMacroLabel(arg, context))
             {
-                errorFlag = YES;
+                errorFlag = TRUE;
                 /*error*/
-                macroFlag = NO;
+                macroFlag = FALSE;
             }
             else
             {
                 macroLabel = malloc(strlen(arg) + 1);
                 strcpy(macroLabel, arg);
                 macroBodyLine = 0;
-                macroBody = calloc(LINE_BUFF, sizeof(char));
-                while (macroFlag && fgets(line, LINE_BUFF, srcFile) != NULL)
+                macroBody = calloc(LINE_SIZE, sizeof(char));
+                while (macroFlag && fgets(line, LINE_SIZE, srcFile) != NULL)
                 {
                     lineNum++;
                     macroBodyLine++;
                     if (macroBodyLine > 1)
-                        macroBody = realloc(macroBody, macroBodyLine * LINE_BUFF * sizeof(char));
+                        macroBody = realloc(macroBody, macroBodyLine * LINE_SIZE * sizeof(char));
                     arg = strtok(line, " ");
                     if (strcmp(arg, "mcroend") == 0)
-                        macroFlag = NO;
+                        macroFlag = FALSE;
                     else
                     {
                         while (arg != NULL)
@@ -100,7 +97,7 @@ void preAssembler(char *srcFileName, assemblerContext context)
                         strcat(macroBody, "\n");
                     }
                 }
-                insertMac(context->macroTable, macroLabel, macroBody);
+                insertMacro(context.macroTable, macroLabel, macroBody);
                 free(macroLabel);
                 free(macroBody);
             }
@@ -117,7 +114,7 @@ void preAssembler(char *srcFileName, assemblerContext context)
             break;
         }
     }
-    if (errorFlag == NO)
+    if (errorFlag == FALSE)
     {
         prefix = malloc(strlen(srcFileName) - 2);
         sscanf(srcFileName, "%[^.]", prefix);
@@ -129,5 +126,10 @@ void preAssembler(char *srcFileName, assemblerContext context)
     }
     fclose(srcFile);
     free(amContent);
-    /*free macro table with dedecated function*/
+    return (errorFlag) ? NULL : amFileName;
+}
+
+int isValidMacroLabel(char *arg, assemblerContext context)
+{
+    return ((!isOperation(arg)) && (!isDirective(arg)) && (strlen(arg) <= MACRO_LABEL_BUFF)) ? TRUE : FALSE;
 }

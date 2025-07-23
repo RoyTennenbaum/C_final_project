@@ -1,10 +1,14 @@
-#include <stdio.h>
-/* Symbol Table Definitions: */
+#ifndef DYNAMIC_TABLES_H
+#define DYNAMIC_TABLES_H
 
+#include <stdio.h>
+
+/* Symbol Table Definitions: */
 /**
  * symbol is a node to be contained in the linked list 'symbolTable'.
  */
-typedef struct symbol_node {
+typedef struct symbol_node
+{
     char *label;
     int address;
     char *type;
@@ -17,11 +21,11 @@ typedef struct symbol_node {
 typedef symbol *symbolTable;
 
 /* Macro Table Definitions: */
-
 /**
- * macro is a node to be contained in the linked list 'macroTable'.
+ * macro is a node to be contained in the linked list 'macros'.
  */
-typedef struct macro_node {
+typedef struct macro_node
+{
     char *label;
     char *body;
     struct macro_node *next;
@@ -33,7 +37,8 @@ typedef struct macro_node {
 typedef macro *macroTable;
 
 /* testing with main.c */
-typedef enum {
+typedef enum
+{
     INSERT = 1,
     SEARCH,
     DISPLAY,
@@ -50,3 +55,5 @@ void displaySymbol(symbolTable sHead); /* for debugging */
 void insertMacro(macroTable *mHeadP, char *label, char *body);
 macro *searchMacro(macroTable mHead, char *label);
 void displayMacro(macroTable mHead); /* for debugging */
+
+#endif /* DYNAMIC_TABLES_H */
