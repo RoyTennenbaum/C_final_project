@@ -1,8 +1,4 @@
 #include <stdio.h>
-
-#define LINE_SIZE 80
-enum { FALSE, TRUE };
-
 /* Symbol Table Definitions: */
 
 /**
@@ -11,6 +7,7 @@ enum { FALSE, TRUE };
 typedef struct symbol_node {
     char *label;
     int address;
+    char *type;
     struct symbol_node *next;
 } symbol;
 
@@ -47,11 +44,9 @@ typedef enum {
 } MenuChoices;
 
 /* Function prototypes */
-void insertSymbol(symbolTable *pstart, char *label,
-                  int address); /* insert symbol */
-void searchSymbol(symbolTable start, char *label); /* search for symbol */
-void displaySymbol(symbolTable start); /* for debugging */
-void insertMacro(macroTable *pstartM, char *label,
-                 char *body); /* insert macro */
-macro *searchMacro(macroTable startM, char *label); /* search for macro */
-void displayMacro(macroTable startM); /* for debugging */
+void insertSymbol(symbolTable *sHeadP, char *label, int address, char *type);
+symbol *searchSymbol(symbolTable sHead, char *label);
+void displaySymbol(symbolTable sHead); /* for debugging */
+void insertMacro(macroTable *mHeadP, char *label, char *body);
+macro *searchMacro(macroTable mHead, char *label);
+void displayMacro(macroTable mHead); /* for debugging */

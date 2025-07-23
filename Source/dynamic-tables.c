@@ -7,18 +7,10 @@
  * Insert a node at the end of the list.
  * Traverses the list to the last node and appends the new node.
  */
-void insertSymbol(symbolTable *pstart, char *label, int address) {
-    // char label[LINE_SIZE + 1];
-    // int address;
+void insertSymbol(symbolTable *sHeadP, char *label, int address, char *type) {
     symbol *ptr = NULL;
     symbol *newSymbol = NULL;
     int success = FALSE;
-
-    // /* Testing */
-    // printf("Enter label: ");
-    // scanf("%s", label);
-    // printf("Enter address: ");
-    // scanf("%d", &address);
 
     /* Allocate memory for new node in the list */
     newSymbol = (symbol *)malloc(sizeof(symbol));
@@ -30,14 +22,16 @@ void insertSymbol(symbolTable *pstart, char *label, int address) {
         (*newSymbol).label = malloc(strlen(label) + 1);
         strcpy((*newSymbol).label, label);
         (*newSymbol).address = address;
+        (*newSymbol).type = malloc(strlen(type) + 1);
+        strcpy((*newSymbol).type, type);
         (*newSymbol).next = NULL;
 
         /* If the list was empty insert as first node */
-        if (*pstart == NULL) {
-            *pstart = newSymbol;
+        if (*sHeadP == NULL) {
+            *sHeadP = newSymbol;
             success = TRUE;
         } else { /* Else, insert as last node of the list */
-            ptr = *pstart;
+            ptr = *sHeadP;
 
             while ((*ptr).next != NULL) {
                 ptr = (*ptr).next;
@@ -55,37 +49,24 @@ void insertSymbol(symbolTable *pstart, char *label, int address) {
 }
 
 /**
- * Check if an item is present in the list.
- * Prints the location if found.
- * @param pstart Pointer to the pointer of the start node.
+ * Check if a symbol is present in the list.
+ * Returns the symbol if found, else NULL.
+ * @param sHead Points to the pointer of the first symbolTable node.
  */
-void searchSymbol(symbolTable start, char *label) {
-    // char label[LINE_SIZE + 1];
-    symbolTable ptr = start;
-    int count = 1;
-    int found = FALSE;
+symbol *searchSymbol(symbolTable sHead, char *label) {
+    symbolTable ptr = sHead;
 
-    // /* testing */
-    // printf("Enter symbol label to be searched: ");
-    // scanf("%s", label);
-
-    while (ptr != NULL && !found) {
-        if (strcmp((*ptr).label, label) != 0) {
-            ptr = (*ptr).next;
-            count++;
-        } else {
-            printf("label %s is present in symbol number %d\n", label, count);
-            found = TRUE;
+    while (ptr != NULL) {
+        if (strcmp((*ptr).label, label) == 0) {
+            return ptr;
         }
+        ptr = (*ptr).next;
     }
-
-    if (!found) {
-        printf("symbol is not present in the list.\n");
-    }
+    return NULL;
 }
 
-void displaySymbol(symbolTable start) {
-    symbol *ptr = start;
+void displaySymbol(symbolTable sHead) {
+    symbol *ptr = sHead;
     int i = 1;
 
     if (ptr == NULL) {
@@ -102,18 +83,10 @@ void displaySymbol(symbolTable start) {
 }
 
 // void insertMac(macroTable *pstartM) {
-void insertMacro(macroTable *pstartM, char *label, char *body) {
-    // char label[LINE_SIZE + 1]; /* upto 30 chars */
-    // char body[1000]; /* temp only for testing, should be an arg in the func */
+void insertMacro(macroTable *mHeadP, char *label, char *body) {
     macro *ptr = NULL;
     macro *newMacro = NULL;
     int success = FALSE;
-
-    // /* testing */
-    // printf("Enter macro label: ");
-    // scanf("%s", label);
-    // printf("Enter macro body: ");
-    // scanf("%s", body);
 
     /* Allocate memory for new node in the list */
     newMacro = (macro *)malloc(sizeof(macro));
@@ -129,11 +102,11 @@ void insertMacro(macroTable *pstartM, char *label, char *body) {
         (*newMacro).next = NULL;
 
         /* If the list was empty insert as first node */
-        if (*pstartM == NULL) {
-            *pstartM = newMacro;
+        if (*mHeadP == NULL) {
+            *mHeadP = newMacro;
             success = TRUE;
         } else { /* Else, insert as last node of the list */
-            ptr = *pstartM;
+            ptr = *mHeadP;
 
             while ((*ptr).next != NULL) {
                 ptr = (*ptr).next;
@@ -150,35 +123,25 @@ void insertMacro(macroTable *pstartM, char *label, char *body) {
     }
 }
 
-macro *searchMacro(macroTable startM, char *label) {
-    // char label[LINE_SIZE + 1];
-    macroTable ptr = startM;
-    int count = 1;
-    int found = FALSE;
+/**
+ * Check if a macro is present in the list.
+ * Returns the macro if found, else NULL.
+ * @param mHead Points to the first macroTable node.
+ */
+macro *searchMacro(macroTable mHead, char *label) {
+    macroTable ptr = mHead;
 
-    // /* testing */
-    // printf("Enter macro label to be searched: ");
-    // scanf("%s", label);
-
-    while (ptr != NULL && !found) {
-        if (strcmp((*ptr).label, label) != 0) {
-            ptr = (*ptr).next;
-            count++;
-        } else {
-            printf("label %s is present in macro number %d\n", label, count);
-            found = TRUE;
+    while (ptr != NULL) {
+        if (strcmp((*ptr).label, label) == 0) {
             return ptr;
         }
-    }
-
-    if (!found) {
-        printf("macro is not present in the list.\n");
+        ptr = (*ptr).next;
     }
     return NULL;
 }
 
-void displayMacro(macroTable startM) {
-    macro *ptr = startM;
+void displayMacro(macroTable mHead) {
+    macro *ptr = mHead;
     int i = 1;
 
     if (ptr == NULL) {
