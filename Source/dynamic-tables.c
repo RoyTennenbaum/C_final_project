@@ -7,7 +7,7 @@
  * Insert a node at the end of the list.
  * Traverses the list to the last node and appends the new node.
  */
-void insert(symbolTable *pstart, char *label, int address) {
+void insertSymbol(symbolTable *pstart, char *label, int address) {
     // char label[LINE_SIZE + 1];
     // int address;
     symbol *ptr = NULL;
@@ -59,7 +59,7 @@ void insert(symbolTable *pstart, char *label, int address) {
  * Prints the location if found.
  * @param pstart Pointer to the pointer of the start node.
  */
-void search(symbolTable start, char *label) {
+void searchSymbol(symbolTable start, char *label) {
     // char label[LINE_SIZE + 1];
     symbolTable ptr = start;
     int count = 1;
@@ -84,7 +84,7 @@ void search(symbolTable start, char *label) {
     }
 }
 
-void display(symbolTable start) {
+void displaySymbol(symbolTable start) {
     symbol *ptr = start;
     int i = 1;
 
@@ -102,7 +102,7 @@ void display(symbolTable start) {
 }
 
 // void insertMac(macroTable *pstartM) {
-void insertMac(macroTable *pstartM, char *label, char *body) {
+void insertMacro(macroTable *pstartM, char *label, char *body) {
     // char label[LINE_SIZE + 1]; /* upto 30 chars */
     // char body[1000]; /* temp only for testing, should be an arg in the func */
     macro *ptr = NULL;
@@ -150,7 +150,7 @@ void insertMac(macroTable *pstartM, char *label, char *body) {
     }
 }
 
-macro *searchMac(macroTable startM, char *label) {
+macro *searchMacro(macroTable startM, char *label) {
     // char label[LINE_SIZE + 1];
     macroTable ptr = startM;
     int count = 1;
@@ -177,7 +177,7 @@ macro *searchMac(macroTable startM, char *label) {
     return NULL;
 }
 
-void displayMac(macroTable startM) {
+void displayMacro(macroTable startM) {
     macro *ptr = startM;
     int i = 1;
 
