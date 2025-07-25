@@ -1,10 +1,10 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include "../Headers/global.h"
-#include "../Headers/errors.h"
-#include "../Headers/dynamic-tables.h"
-#include "../Headers/static-tables.h"
+#include "global.h"
+#include "errors.h"
+#include "dynamic-tables.h"
+#include "static-tables.h"
 
 typedef struct {
     symbolTable *symbolTable;

@@ -1,7 +1,7 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
-#include "../Headers/global.h"
+#include "global.h"
 
 enum { SUCCESS, ERROR };
 

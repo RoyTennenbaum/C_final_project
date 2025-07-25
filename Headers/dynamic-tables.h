@@ -1,7 +1,7 @@
 #ifndef DYNAMIC_TABLES_H
 #define DYNAMIC_TABLES_H
 
-#include "../Headers/global.h"
+#include "global.h"
 
 /* Symbol Table Definitions: */
 /**
