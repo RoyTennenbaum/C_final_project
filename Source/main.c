@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "../Headers/main.h"
 
 int main(int argc, char *argv[]) {

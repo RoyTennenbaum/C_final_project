@@ -1,17 +1,17 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include "../Headers/dynamic-tables.h"
 #include "../Headers/global.h"
+#include "../Headers/errors.h"
+#include "../Headers/dynamic-tables.h"
 #include "../Headers/static-tables.h"
 
-typedef struct
-{
+typedef struct {
     symbolTable *symbolTable;
     macroTable *macroTable;
-    operationTable *operationTable;
-    directiveTable *directiveTable;
-    registers *registers;
+    const operationTable *operationTable;
+    const directiveTable *directiveTable;
+    const registers *registers;
 } assemblerContext;
 
-#endif /* PRE_ASSEMBLER_H */
+#endif

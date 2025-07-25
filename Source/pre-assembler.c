@@ -1,13 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "../Headers/global.h"
 #include "../Headers/pre-assembler.h"
-#include "../Headers/dynamic-tables.h"
-#include "../Headers/static-tables.h"
 
-char *preAssembler(char *srcFileName, assemblerContext context)
-{
+char *preAssembler(char *srcFileName, assemblerContext context) {
     FILE *amFile;
     FILE *srcFile;
     char *amContent = calloc(LINE_SIZE, sizeof(char));
@@ -26,12 +22,10 @@ char *preAssembler(char *srcFileName, assemblerContext context)
 
     srcFile = fopen(srcFileName, "r");
 
-    while (fgets(line, LINE_SIZE, srcFile) != NULL)
-    {
+    while (fgets(line, LINE_SIZE, srcFile) != NULL) {
         lineNum++;
         int state = NORMAL_LINE;
-        if (strlen(line) >= LINE_SIZE - 1)
-        {
+        if (strlen(line) >= LINE_SIZE - 1) {
             errorFlag = TRUE;
             /*error*/
         }
@@ -41,13 +35,11 @@ char *preAssembler(char *srcFileName, assemblerContext context)
             state = MACRO_SPREAD;
         else if (strcmp(arg, "mcro") == 0)
             state = MACRO_DEFINE;
-        switch (state)
-        {
+        switch (state) {
         case MACRO_SPREAD:
             strcat(amContent, (*tempMacro).body);
             arg = strtok(NULL, " ");
-            while (arg != NULL)
-            {
+            while (arg != NULL) {
                 strcat(amContent, " ");
                 strcat(amContent, arg);
                 arg = strtok(NULL, " ");
@@ -59,37 +51,31 @@ char *preAssembler(char *srcFileName, assemblerContext context)
             macroFlag = TRUE;
             arg = strtok(NULL, " ");
 
-            if (arg == NULL)
-            {
+            if (arg == NULL) {
                 errorFlag = TRUE;
                 /*error*/
                 macroFlag = FALSE;
-            }
-            else if (!isValidMacroLabel(arg, context))
-            {
+            } else if (!isValidMacroLabel(arg, context)) {
                 errorFlag = TRUE;
                 /*error*/
                 macroFlag = FALSE;
-            }
-            else
-            {
+            } else {
                 macroLabel = malloc(strlen(arg) + 1);
                 strcpy(macroLabel, arg);
                 macroBodyLine = 0;
                 macroBody = calloc(LINE_SIZE, sizeof(char));
-                while (macroFlag && fgets(line, LINE_SIZE, srcFile) != NULL)
-                {
+                while (macroFlag && fgets(line, LINE_SIZE, srcFile) != NULL) {
                     lineNum++;
                     macroBodyLine++;
                     if (macroBodyLine > 1)
-                        macroBody = realloc(macroBody, macroBodyLine * LINE_SIZE * sizeof(char));
+                        macroBody =
+                            realloc(macroBody,
+                                    macroBodyLine * LINE_SIZE * sizeof(char));
                     arg = strtok(line, " ");
                     if (strcmp(arg, "mcroend") == 0)
                         macroFlag = FALSE;
-                    else
-                    {
-                        while (arg != NULL)
-                        {
+                    else {
+                        while (arg != NULL) {
                             strcat(macroBody, arg);
                             strcat(macroBody, " ");
                             arg = strtok(NULL, " ");
@@ -104,8 +90,7 @@ char *preAssembler(char *srcFileName, assemblerContext context)
             break;
         case NORMAL_LINE:
         default:
-            while (arg != NULL)
-            {
+            while (arg != NULL) {
                 strcat(amContent, arg);
                 strcat(amContent, " ");
                 arg = strtok(NULL, " ");
@@ -114,8 +99,7 @@ char *preAssembler(char *srcFileName, assemblerContext context)
             break;
         }
     }
-    if (errorFlag == FALSE)
-    {
+    if (errorFlag == FALSE) {
         prefix = malloc(strlen(srcFileName) - 2);
         sscanf(srcFileName, "%[^.]", prefix);
         amFileName = malloc(strlen(srcFileName) + 1);
@@ -129,7 +113,9 @@ char *preAssembler(char *srcFileName, assemblerContext context)
     return (errorFlag) ? NULL : amFileName;
 }
 
-int isValidMacroLabel(char *arg, assemblerContext context)
-{
-    return ((!isOperation(arg)) && (!isDirective(arg)) && (strlen(arg) <= MACRO_LABEL_BUFF)) ? TRUE : FALSE;
+int isValidMacroLabel(char *arg, assemblerContext context) {
+    return ((!isOperation(arg)) && (!isDirective(arg)) &&
+            (strlen(arg) <= MACRO_LABEL_BUFF))
+               ? TRUE
+               : FALSE;
 }

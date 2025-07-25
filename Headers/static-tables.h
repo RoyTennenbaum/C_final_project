@@ -30,4 +30,4 @@ typedef registerInfo registers[REGISTER_NUM];
 operation *searchOperation(const char *str);
 directive *searchDirective(const char *str);
 
-#endif /* STATIC_TABLES_H */
+#endif

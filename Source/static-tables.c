@@ -1,3 +1,4 @@
+#include <string.h>
 #include "../Headers/static-tables.h"
 
 operation *searchOperation(const char *str) {

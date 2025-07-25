@@ -1,3 +1,6 @@
+#ifndef WORD_TYPES_H
+#define WORD_TYPES_H
+
 typedef struct
 {
     unsigned short aer_bits : 2;
@@ -41,3 +44,5 @@ typedef struct
     unsigned short src_reg_bits : 3;
     :1;
 } registerAddressingWord;
+
+#endif
