@@ -5,6 +5,8 @@
 #define DIR_TABLE_SIZE 5
 #define REGISTER_NUM 8
 
+#include "../Headers/global.h"
+
 typedef struct
 {
     char *name;

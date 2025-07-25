@@ -2,6 +2,7 @@
 #define DYNAMIC_TABLES_H
 
 #include <stdio.h>
+#include "../Headers/global.h"
 
 /* Symbol Table Definitions: */
 /**

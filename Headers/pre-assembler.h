@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "../Headers/global.h"
+#include "../Headers/main.h"
 #include "../Headers/dynamic-tables.h"
 #include "../Headers/static-tables.h"
 

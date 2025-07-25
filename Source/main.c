@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../Headers/dynamic-tables.h"
-#include "../Headers/global.h"
-#include "../Headers/static-tables.h"
+#include "../Headers/main.h"
+
 int main(int argc, char *argv[]) {
     symbolTable symbolTableHead = NULL;
     macroTable macroTableHead = NULL;
