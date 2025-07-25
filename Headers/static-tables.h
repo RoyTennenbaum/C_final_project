@@ -5,27 +5,29 @@
 #define DIR_TABLE_SIZE 5
 #define REGISTER_NUM 8
 
-#include "../Headers/global.h"
+typedef enum { DATA, STRING, MAT, ENTRY, EXTERN } directiveType;
 
-typedef struct
-{
-    char *name;
+typedef struct {
+    const char *name;
     int number;
-} operation, operationTable[OP_TABLE_SIZE];
+} operation;
 
-typedef char *directive;
+typedef struct {
+    const char *name;
+    directiveType type;
+} directive;
+
+typedef struct {
+    const char *name;
+    int number;
+} registerInfo;
+
+typedef operation operationTable[OP_TABLE_SIZE];
 typedef directive directiveTable[DIR_TABLE_SIZE];
-
-typedef struct
-{
-    char *name;
-    int number;
-} registerInfo, registers[REGISTER_NUM];
+typedef registerInfo registers[REGISTER_NUM];
 
 /* Function declarations */
-operation searchOperation(const char *str);
-directive searchDirective(const char *str);
-int isOperation(const char *str);
-int isDirective(const char *str);
+operation *searchOperation(const char *str);
+directive *searchDirective(const char *str);
 
 #endif /* STATIC_TABLES_H */
