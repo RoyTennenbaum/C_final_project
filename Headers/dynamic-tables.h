@@ -3,6 +3,8 @@
 
 #include "global.h"
 
+typedef enum { TYPE_EXTERNAL, TYPE_DATA, TYPE_CODE } symbolType;
+
 /* Symbol Table Definitions: */
 /**
  * symbol is a node to be contained in the linked list 'symbolTable'.
@@ -10,7 +12,7 @@
 typedef struct symbol_node {
     char *label;
     int address;
-    char *type;
+    symbolType type;
     struct symbol_node *next;
 } symbol;
 
@@ -34,19 +36,9 @@ typedef struct macro_node {
  */
 typedef macro *macroTable;
 
-/* testing with main.c */
-typedef enum {
-    INSERT = 1,
-    SEARCH,
-    DISPLAY,
-    INSERT_MAC,
-    SEARCH_MAC,
-    DISPLAY_MAC,
-    EXIT_PROGRAM
-} MenuChoices;
-
 /* Function prototypes */
-void insertSymbol(symbolTable *sHeadP, char *label, int address, char *type);
+void insertSymbol(symbolTable *sHeadP, char *label, int address,
+                  symbolType type);
 symbol *searchSymbol(symbolTable sHead, char *label);
 void displaySymbol(symbolTable sHead); /* for debugging */
 void insertMacro(macroTable *mHeadP, char *label, char *body);

@@ -45,7 +45,7 @@ int firstIteration(char *fileName, assemblerContext *context) {
 
         /* If we reached this point, the line must be an operation sentence */
         if (symbolFlag) {
-            insertSymbol((*context).symbolTable, arg, IC, ".code");
+            insertSymbol((*context).symbolTable, arg, IC, TYPE_CODE);
         }
         if (handleOperation(context, arg, &IC, symbolFlag)) {
             printf("nice");
@@ -97,7 +97,7 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
     switch ((*dir).type) {
     case DATA:
         if (symbolFlag) {
-            insertSymbol((*context).symbolTable, str, *DC, ".data");
+            insertSymbol((*context).symbolTable, str, *DC, TYPE_DATA);
         }
         /* Code into "word-type" memory */
         /* Update DC accordingly */
@@ -105,7 +105,7 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
 
     case STRING:
         if (symbolFlag) {
-            insertSymbol((*context).symbolTable, str, *DC, ".data");
+            insertSymbol((*context).symbolTable, str, *DC, TYPE_DATA);
         }
         /* Code into "word-type" memory */
         /* Update DC accordingly */
@@ -113,7 +113,7 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
 
     case MAT:
         if (symbolFlag) {
-            insertSymbol((*context).symbolTable, str, *DC, ".data");
+            insertSymbol((*context).symbolTable, str, *DC, TYPE_DATA);
         }
         /* Code into "word-type" memory */
         /* Update DC accordingly */
@@ -124,7 +124,7 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
         return TRUE;
 
     case EXTERN:
-        insertSymbol((*context).symbolTable, str, 0, ".external");
+        insertSymbol((*context).symbolTable, str, 0, TYPE_EXTERNAL);
         /* handled in second iteration */
         return TRUE;
 

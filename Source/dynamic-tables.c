@@ -7,7 +7,8 @@
  * Insert a node at the end of the list.
  * Traverses the list to the last node and appends the new node.
  */
-void insertSymbol(symbolTable *sHeadP, char *label, int address, char *type) {
+void insertSymbol(symbolTable *sHeadP, char *label, int address,
+                  symbolType type) {
     symbol *ptr = NULL;
     symbol *newSymbol = NULL;
     int success = FALSE;
@@ -22,8 +23,7 @@ void insertSymbol(symbolTable *sHeadP, char *label, int address, char *type) {
         (*newSymbol).label = malloc(strlen(label) + 1);
         strcpy((*newSymbol).label, label);
         (*newSymbol).address = address;
-        (*newSymbol).type = malloc(strlen(type) + 1);
-        strcpy((*newSymbol).type, type);
+        (*newSymbol).type = type;
         (*newSymbol).next = NULL;
 
         /* If the list was empty insert as first node */
