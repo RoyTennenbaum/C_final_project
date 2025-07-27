@@ -48,7 +48,7 @@ int firstIteration(char *fileName, assemblerContext context) {
         if (symbolFlag) {
             insertSymbol(context.symbolTable, arg, IC, ".code");
         }
-        if (tempOperation = searchOperation(arg) == NULL) {
+        if (tempOperation = searchOperation(context.opTable, arg) == NULL) {
             printf("ERROR in op name (12 in algo)");
         }
         /* 13: Calculate op word count in variable L */
@@ -61,8 +61,9 @@ int firstIteration(char *fileName, assemblerContext context) {
 
 int isKeyword(assemblerContext context, char *str) {
     if (searchSymbol(context.symbolTable, str) ||
-        searchMacro(context.macroTable, str) || searchOperation(str) ||
-        searchDirective(str) || searchRegister(str)) {
+        searchMacro(context.macroTable, str) ||
+        searchOperation(context.opTable, str) ||
+        searchDirective(context.dirTable, str) || searchRegister(str)) {
         return TRUE;
     }
     return FALSE;
@@ -83,7 +84,7 @@ int isNewSymbol(assemblerContext context, char *str) {
 
 int handleDirective(assemblerContext *context, char *str, int *DC,
                     int symbolFlag) {
-    directive *dir = searchDirective(str);
+    directive *dir = searchDirective(context.dirTable, str);
 
     if (dir == NULL) {
         return FALSE;

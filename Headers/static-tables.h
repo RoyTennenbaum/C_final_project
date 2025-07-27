@@ -27,7 +27,7 @@ typedef directive directiveTable[DIR_TABLE_SIZE];
 typedef registerInfo registers[REGISTER_NUM];
 
 /* Function declarations */
-operation *searchOperation(const char *str);
-directive *searchDirective(const char *str);
+operation *searchOperation(operationTable opTable, const char *str);
+directive *searchDirective(directiveTable dirTable, const char *str);
 
 #endif
