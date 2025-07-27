@@ -12,7 +12,7 @@ char *preAssembler(char *srcFileName, assemblerContext context) {
     int lineNum = 0;
     char line[LINE_SIZE] = {'\0'};
     char *arg;
-    int state = NORMAL_LINE;
+    int state;
     char *macroLabel;
     char *macroBody;
     int macroBodyLine;
@@ -24,14 +24,14 @@ char *preAssembler(char *srcFileName, assemblerContext context) {
 
     while (fgets(line, LINE_SIZE, srcFile) != NULL) {
         lineNum++;
-        int state = NORMAL_LINE;
+        state = NORMAL_LINE;
         if (strlen(line) >= LINE_SIZE - 1) {
             errorFlag = TRUE;
             /*error*/
         }
         amContent = realloc(amContent, lineNum * LINE_SIZE * sizeof(char));
         arg = strtok(line, " ");
-        if ((tempMacro = searchMac(context.macroTable, arg)) != NULL)
+        if ((tempMacro = searchMacro(context.macroTable, arg)) != NULL)
             state = MACRO_SPREAD;
         else if (strcmp(arg, "mcro") == 0)
             state = MACRO_DEFINE;
@@ -114,8 +114,9 @@ char *preAssembler(char *srcFileName, assemblerContext context) {
 }
 
 int isValidMacroLabel(char *arg, assemblerContext context) {
-    return ((!isOperation(arg)) && (!isDirective(arg)) &&
-            (strlen(arg) <= MACRO_LABEL_BUFF))
+    return (searchOperation(context.operationTable, arg) != NULL) &&
+            (isDirective(context.operationTable, arg)!= NULL) &&
+            (strlen(arg) <= MACRO_LABEL_BUFF)
                ? TRUE
                : FALSE;
 }
