@@ -4,7 +4,9 @@
 #include "main.h"
 #include "word-types.h"
 
-int isKeyword(assemblerContext context);
-int isNewSymbol(char *str, assemblerContext context);
+int isKeyword(assemblerContext context, char *str);
+int isNewSymbol(assemblerContext context, char *str);
+int handleDirective(assemblerContext *context, char *str, int *DC,
+                    int symbolFlag);
 
 #endif

@@ -21,8 +21,8 @@ int firstIteration(char *fileName, assemblerContext context) {
 
     while (fgets(line, LINE_SIZE, fp) != NULL) {
         lineNum++;
-
-        arg = strtok(line, " ");
+        /* Get the first word in the line */
+        arg = strtok(line, " \t\n");
 
         /* Skip comment lines and empty lines */
         if (line[0] == ';' || arg == NULL) {
@@ -31,52 +31,28 @@ int firstIteration(char *fileName, assemblerContext context) {
 
         if (isNewSymbol(arg)) {
             symbolFlag = 1;
-            arg = strtok(NULL, " ");
+            arg = strtok(NULL, " \t\n");
+            /* Check if symbol is not placed in front of anything */
+            if (arg == NULL) {
+                printf("ERROR: symbol is the only word in the line");
+                continue;
+            }
         }
 
-        if ((tempDirective = searchDirective(arg)) != NULL) {
-            if (symbolFlag) {
-                insertSymbol(context.symbolTable, arg, DC, ".data");
-            }
-            switch (tempDirective) {
-                case ".data"
-                    /* Code into "word-type" memory */
-                    /* Update DC accordingly */
-                    continue;
-                    break;
-                case ".string"
-                    /* Code into "word-type" memory */
-                    /* Update DC accordingly */
-                    continue;
-                    break;
-                
-                case ".mat"
-                    /* Code into "word-type" memory */
-                    /* Update DC accordingly */
-                    continue;
-                    break;
-                
-                case ".entry"
-                    continue; /* go to next line, will take care of it in second iteration */
-                    break;
-                
-                case ".extern"
-                    insertSymbol(context.symbolTable, arg, 0, ".external");
-                    continue; /* go to next line, will take care of it in second iteration */
-                    break;
-                default
-                    break;
-            }
-        } else {
-            if (symbolFlag) {
-                insertSymbol(context.symbolTable, arg, IC, ".code");
-            }
-            if (tempOperation = searchOperation(arg) == NULL) {
-                printf("ERROR in op name (12 in algo)");
-            }
-            /* 13: Calculate op word count in variable L */
-            /* 14: Code words into word-types */
+        if (handleDirective(context, arg, &DC, symbolFlag)) {
+            /* The current line is a directive sentence, it was handled, 
+            so we move to the next line */
+            continue;
         }
+
+        if (symbolFlag) {
+            insertSymbol(context.symbolTable, arg, IC, ".code");
+        }
+        if (tempOperation = searchOperation(arg) == NULL) {
+            printf("ERROR in op name (12 in algo)");
+        }
+        /* 13: Calculate op word count in variable L */
+        /* 14: Code words into word-types */
     }
 
     fclose(fp);
@@ -98,9 +74,56 @@ int isNewSymbol(assemblerContext context, char *str) {
     if (len < 1) {
         return FALSE;
     }
-    if (len <= 30 || isalpha(str[0]) || str[len - 1] == ':' ||
+    if (len <= 30 && isalpha(str[0]) && str[len - 1] == ':' &&
         !isKeyword(context, str)) {
         return TRUE;
     }
     return FALSE;
+}
+
+int handleDirective(assemblerContext *context, char *str, int *DC,
+                    int symbolFlag) {
+    directive *dir = searchDirective(str);
+
+    if (dir == NULL) {
+        return FALSE;
+    }
+
+    switch (dir.directiveType) {
+    case DATA:
+        if (symbolFlag) {
+            insertSymbol(context.symbolTable, str, *DC, ".data");
+        }
+        /* Code into "word-type" memory */
+        /* Update DC accordingly */
+        return TRUE;
+
+    case STRING:
+        if (symbolFlag) {
+            insertSymbol(context.symbolTable, str, *DC, ".data");
+        }
+        /* Code into "word-type" memory */
+        /* Update DC accordingly */
+        return TRUE;
+
+    case MAT:
+        if (symbolFlag) {
+            insertSymbol(context.symbolTable, str, *DC, ".data");
+        }
+        /* Code into "word-type" memory */
+        /* Update DC accordingly */
+        return TRUE;
+
+    case ENTRY:
+        /* handled in second iteration */
+        return TRUE;
+
+    case EXTERN:
+        insertSymbol(context.symbolTable, str, 0, ".external");
+        /* handled in second iteration */
+        return TRUE;
+
+    default:
+        return FALSE;
+    }
 }
