@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include "../Headers/first-iteration.h"
 
-int firstIteration(char *fileName, assemblerContext context) {
+int firstIteration(char *fileName, assemblerContext *context) {
     int IC = 0, DC = 0;
 
     char line[LINE_SIZE], *arg;
@@ -11,8 +11,6 @@ int firstIteration(char *fileName, assemblerContext context) {
     FILE *fp = fopen(fileName, "r");
 
     int symbolFlag = 0;
-    directive tempDirective;
-    operation tempOperation;
 
     if (fp == NULL) {
         printf("Error: file could not be opened.");
@@ -29,7 +27,7 @@ int firstIteration(char *fileName, assemblerContext context) {
             continue;
         }
 
-        if (isNewSymbol(arg)) {
+        if (isNewSymbol(context, arg)) {
             symbolFlag = 1;
             arg = strtok(NULL, " \t\n");
             /* Check if symbol is not placed in front of anything */
@@ -45,12 +43,17 @@ int firstIteration(char *fileName, assemblerContext context) {
             continue;
         }
 
+        /* If we reached this point, the line must be an operation sentence */
         if (symbolFlag) {
-            insertSymbol(context.symbolTable, arg, IC, ".code");
+            insertSymbol((*context).symbolTable, arg, IC, ".code");
         }
-        if (tempOperation = searchOperation(context.opTable, arg) == NULL) {
+        if (handleOperation(context, arg, &IC, symbolFlag)) {
+            printf("nice");
+        }
+        /*if ((tempOperation = searchOperation((*context).opTable[0], arg)) ==
+            NULL) {
             printf("ERROR in op name (12 in algo)");
-        }
+        } */
         /* 13: Calculate op word count in variable L */
         /* 14: Code words into word-types */
     }
@@ -59,17 +62,18 @@ int firstIteration(char *fileName, assemblerContext context) {
     return 0;
 }
 
-int isKeyword(assemblerContext context, char *str) {
-    if (searchSymbol(context.symbolTable, str) ||
-        searchMacro(context.macroTable, str) ||
-        searchOperation(context.opTable, str) ||
-        searchDirective(context.dirTable, str) || searchRegister(str)) {
+int isKeyword(assemblerContext *context, char *str) {
+    if (searchSymbol(*(*context).symbolTable, str) ||
+        searchMacro(*(*context).macroTable, str) ||
+        searchOperation(*(*context).operationTable, str) ||
+        searchDirective(*(*context).directiveTable, str) /* ||
+        searchRegister(str) */) {
         return TRUE;
     }
     return FALSE;
 }
 
-int isNewSymbol(assemblerContext context, char *str) {
+int isNewSymbol(assemblerContext *context, char *str) {
     size_t len = strlen(str);
     /* failsafe to ensure len-1 will always be valid */
     if (len < 1) {
@@ -84,16 +88,16 @@ int isNewSymbol(assemblerContext context, char *str) {
 
 int handleDirective(assemblerContext *context, char *str, int *DC,
                     int symbolFlag) {
-    directive *dir = searchDirective(context.dirTable, str);
+    directive *dir = searchDirective(*(*context).directiveTable, str);
 
     if (dir == NULL) {
         return FALSE;
     }
 
-    switch (dir.directiveType) {
+    switch ((*dir).type) {
     case DATA:
         if (symbolFlag) {
-            insertSymbol(context.symbolTable, str, *DC, ".data");
+            insertSymbol((*context).symbolTable, str, *DC, ".data");
         }
         /* Code into "word-type" memory */
         /* Update DC accordingly */
@@ -101,7 +105,7 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
 
     case STRING:
         if (symbolFlag) {
-            insertSymbol(context.symbolTable, str, *DC, ".data");
+            insertSymbol((*context).symbolTable, str, *DC, ".data");
         }
         /* Code into "word-type" memory */
         /* Update DC accordingly */
@@ -109,7 +113,7 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
 
     case MAT:
         if (symbolFlag) {
-            insertSymbol(context.symbolTable, str, *DC, ".data");
+            insertSymbol((*context).symbolTable, str, *DC, ".data");
         }
         /* Code into "word-type" memory */
         /* Update DC accordingly */
@@ -120,11 +124,17 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
         return TRUE;
 
     case EXTERN:
-        insertSymbol(context.symbolTable, str, 0, ".external");
+        insertSymbol((*context).symbolTable, str, 0, ".external");
         /* handled in second iteration */
         return TRUE;
 
     default:
         return FALSE;
     }
+    return FALSE;
+}
+
+int handleOperation(assemblerContext *context, char *str, int *IC,
+                    int symbolFlag) {
+    return TRUE;
 }

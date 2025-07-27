@@ -19,12 +19,12 @@ int main(int argc, char *argv[]) {
 
     assemblerContext context = {&symbolTableHead, &macroTableHead, &opTable,
                                 &dirTable, &regs};
-    /*int i;
+    int i;
     for (i = 1; i < argc; i++) {
-        preAssembler(argv[i], context);
-        firstIteration(argv[i], context);
-        secondIteration(argv[i], context);
-    }*/ 
+        preAssembler(argv[i], &context);
+        /*firstIteration(argv[i], &context);
+        secondIteration(argv[i], &context);*/
+    }
 
     return 0;
 }

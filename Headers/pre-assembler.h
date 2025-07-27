@@ -8,7 +8,7 @@
 enum states { MACRO_SPREAD, MACRO_DEFINE, NORMAL_LINE };
 
 /* Function declarations */
-char *preAssembler(char *srcFileName, assemblerContext context);
-int isValidMacroLabel(char *arg, assemblerContext context);
+char *preAssembler(char *srcFileName, assemblerContext *context);
+int isValidMacroLabel(char *arg, assemblerContext *context);
 
 #endif

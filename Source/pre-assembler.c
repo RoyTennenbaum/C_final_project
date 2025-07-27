@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "../Headers/pre-assembler.h"
 
-char *preAssembler(char *srcFileName, assemblerContext context) {
+char *preAssembler(char *srcFileName, assemblerContext *context) {
     FILE *amFile;
     FILE *srcFile;
     char *amContent = calloc(LINE_SIZE, sizeof(char));
@@ -31,7 +31,10 @@ char *preAssembler(char *srcFileName, assemblerContext context) {
         }
         amContent = realloc(amContent, lineNum * LINE_SIZE * sizeof(char));
         arg = strtok(line, " ");
-        if ((tempMacro = searchMacro(context.macroTable, arg)) != NULL)
+
+        if (arg == NULL)
+            ;
+        else if ((tempMacro = searchMacro((*context).macroTable, arg)) != NULL)
             state = MACRO_SPREAD;
         else if (strcmp(arg, "mcro") == 0)
             state = MACRO_DEFINE;
@@ -55,7 +58,7 @@ char *preAssembler(char *srcFileName, assemblerContext context) {
                 errorFlag = TRUE;
                 /*error*/
                 macroFlag = FALSE;
-            } else if (!isValidMacroLabel(arg, context)) {
+            } else if (!isValidMacroLabel(arg, &context)) {
                 errorFlag = TRUE;
                 /*error*/
                 macroFlag = FALSE;
@@ -83,13 +86,12 @@ char *preAssembler(char *srcFileName, assemblerContext context) {
                         strcat(macroBody, "\n");
                     }
                 }
-                insertMacro(context.macroTable, macroLabel, macroBody);
+                insertMacro((*context).macroTable, macroLabel, macroBody);
                 free(macroLabel);
                 free(macroBody);
             }
             break;
         case NORMAL_LINE:
-        default:
             while (arg != NULL) {
                 strcat(amContent, arg);
                 strcat(amContent, " ");
@@ -97,10 +99,13 @@ char *preAssembler(char *srcFileName, assemblerContext context) {
             }
             strcat(amContent, "\n");
             break;
+        default:
+            /* some error */
+            break;
         }
     }
     if (errorFlag == FALSE) {
-        prefix = malloc(strlen(srcFileName) - 2);
+        prefix = malloc(strlen(srcFileName));
         sscanf(srcFileName, "%[^.]", prefix);
         amFileName = malloc(strlen(srcFileName) + 1);
         sprintf(amFileName, "%s.am", prefix);
@@ -113,10 +118,10 @@ char *preAssembler(char *srcFileName, assemblerContext context) {
     return (errorFlag) ? NULL : amFileName;
 }
 
-int isValidMacroLabel(char *arg, assemblerContext context) {
-    return (searchOperation(context.operationTable, arg) != NULL) &&
-            (isDirective(context.operationTable, arg)!= NULL) &&
-            (strlen(arg) <= MACRO_LABEL_BUFF)
+int isValidMacroLabel(char *arg, assemblerContext *context) {
+    return ((searchOperation((*context).operationTable, arg) == NULL) &&
+            (searchDirective((*context).directiveTable, arg) == NULL) &&
+            (strlen(arg) <= MACRO_LABEL_BUFF))
                ? TRUE
                : FALSE;
 }
