@@ -82,7 +82,6 @@ void displaySymbol(symbolTable sHead) {
     }
 }
 
-// void insertMac(macroTable *pstartM) {
 void insertMacro(macroTable *mHeadP, char *label, char *body) {
     macro *ptr = NULL;
     macro *newMacro = NULL;
