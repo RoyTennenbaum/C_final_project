@@ -25,3 +25,15 @@ const directive *searchDirective(const directiveTable dirTable,
     }
     return NULL;
 }
+
+const directive *searchRegister(const registers registers, const char *str) {
+    int i;
+    const char *regName;
+    for (i = 0; i < REGISTER_NUM; i++) {
+        regName = registers[i].name;
+        if (strcmp(regName, str) == 0) {
+            return &registers[i];
+        }
+    }
+    return NULL;
+}

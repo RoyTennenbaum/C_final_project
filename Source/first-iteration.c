@@ -66,8 +66,8 @@ int isKeyword(assemblerContext *context, char *str) {
     if (searchSymbol(*(*context).symbolTable, str) ||
         searchMacro(*(*context).macroTable, str) ||
         searchOperation(*(*context).operationTable, str) ||
-        searchDirective(*(*context).directiveTable, str) /* ||
-        searchRegister(str) */) {
+        searchDirective(*(*context).directiveTable, str) ||
+        searchRegister(*(*context).registers, str)) {
         return TRUE;
     }
     return FALSE;
