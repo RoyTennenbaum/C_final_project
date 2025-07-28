@@ -26,7 +26,7 @@ const directive *searchDirective(const directiveTable dirTable,
     return NULL;
 }
 
-const directive *searchRegister(const registers registers, const char *str) {
+const registerInfo *searchRegister(const registers registers, const char *str) {
     int i;
     const char *regName;
     for (i = 0; i < REGISTER_NUM; i++) {

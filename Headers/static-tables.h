@@ -30,6 +30,6 @@ typedef registerInfo registers[REGISTER_NUM];
 const operation *searchOperation(const operationTable opTable, const char *str);
 const directive *searchDirective(const directiveTable dirTable,
                                  const char *str);
-const directive *searchRegister(const directiveTable dirTable, const char *str);
+const registerInfo *searchRegister(const registers registers, const char *str);
 
 #endif
