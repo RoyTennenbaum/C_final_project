@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
 
     assemblerContext context;
     int i;
+    static int ICF, DCF;
 
     context.symbolTable = &symbolTableHead;
     context.macroTable = &macroTableHead;
@@ -28,8 +29,8 @@ int main(int argc, char *argv[]) {
 
     for (i = 1; i < argc; i++) {
         preAssembler(argv[i], &context);
-        firstIteration(argv[i], &context);
-        secondIteration(argv[i], &context);
+        firstIteration(argv[i], &context, &ICF, &DCF);
+        secondIteration(argv[i], &context, ICF, DCF);
     }
 
     return 0;

@@ -3,16 +3,16 @@
 #include <ctype.h>
 #include "../Headers/first-iteration.h"
 
-int firstIteration(char *fileName, assemblerContext *context) {
-    int IC = 0, DC = 0;
-
+int firstIteration(char *fileName, assemblerContext *context, int *ICF,
+                   int *DCF) {
     char line[LINE_SIZE], *arg;
     int lineNum = 0; /* Mark line number for future error messages */
+
+    int IC = 0, DC = 0, symbolFlag = 0, errorFlag = 0;
+
     FILE *fp = fopen(fileName, "r");
-
-    int symbolFlag = 0;
-
     if (fp == NULL) {
+        errorFlag = 1;
         printf("Error: file could not be opened.");
         return 1;
     }
@@ -48,15 +48,16 @@ int firstIteration(char *fileName, assemblerContext *context) {
             insertSymbol((*context).symbolTable, arg, IC, TYPE_CODE);
         }
         if (handleOperation(context, arg, &IC, symbolFlag)) {
-            printf("nice");
+            continue;
         }
-        /*if ((tempOperation = searchOperation((*context).opTable[0], arg)) ==
-            NULL) {
-            printf("ERROR in op name (12 in algo)");
-        } */
-        /* 13: Calculate op word count in variable L */
-        /* 14: Code words into word-types */
     }
+
+    if (errorFlag) {
+        /* stop program */
+    }
+
+    *ICF = IC;
+    *DCF = DC;
 
     fclose(fp);
     return 0;
@@ -91,6 +92,7 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
     const directive *dir = searchDirective(*(*context).directiveTable, str);
 
     if (dir == NULL) {
+        /* error */
         return FALSE;
     }
 
@@ -100,6 +102,7 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
             insertSymbol((*context).symbolTable, str, *DC, TYPE_DATA);
         }
         /* Code into "word-type" memory */
+        /* encodeDataDir()*/
         /* Update DC accordingly */
         return TRUE;
 
@@ -136,5 +139,96 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
 
 int handleOperation(assemblerContext *context, char *str, int *IC,
                     int symbolFlag) {
-    return TRUE;
+    const operation *op = searchOperation(*(*context).operationTable, str);
+    int L = 0;
+
+    if (op == NULL) {
+        /* error */
+        return FALSE;
+    }
+
+    switch ((*op).number) {
+    case 0:
+        /* Handle MOV operation */
+        /* Update IC accordingly */
+        return TRUE;
+
+    case 1:
+        /* Handle CMP operation */
+        /* Update IC accordingly */
+        return TRUE;
+
+    case 2:
+        /* Handle ADD operation */
+        /* Generate opcode for addition */
+        return TRUE;
+
+    case 3:
+        /* Handle SUB operation */
+        /* Update instruction format */
+        return TRUE;
+
+    case 4:
+        /* Handle NOT operation */
+        /* Single operand */
+        return TRUE;
+
+    case 5:
+        /* Handle CLR operation */
+        /* Use destination operand only */
+        return TRUE;
+
+    case 6:
+        /* Handle LEA operation */
+        /* Load effective address */
+        return TRUE;
+
+    case 7:
+        /* Handle INC operation */
+        /* Unary operation */
+        return TRUE;
+
+    case 8:
+        /* Handle DEC operation */
+        /* Decrement register/memory */
+        return TRUE;
+
+    case 9:
+        /* Handle JMP operation */
+        /* Control transfer */
+        return TRUE;
+
+    case 10:
+        /* Handle BNE operation */
+        /* Conditional jump */
+        return TRUE;
+
+    case 11:
+        /* Handle RED operation */
+        /* Read input to destination */
+        return TRUE;
+
+    case 12:
+        /* Handle PRN operation */
+        /* Print numeric value */
+        return TRUE;
+
+    case 13:
+        /* Handle JSR operation */
+        /* Jump to subroutine */
+        return TRUE;
+
+    case 14:
+        /* Handle RTS operation */
+        /* Return from subroutine */
+        return TRUE;
+
+    case 15:
+        /* Handle STOP operation */
+        /* Halts program */
+        return TRUE;
+    default:
+        return FALSE;
+    }
+    return FALSE;
 }

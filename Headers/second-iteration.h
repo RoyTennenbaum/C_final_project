@@ -4,5 +4,6 @@
 #include "main.h"
 #include "word-types.h"
 
-int secondIteration(char *fileName, assemblerContext *context);
+int secondIteration(char *fileName, assemblerContext *context, int ICF,
+                    int DCF);
 #endif
