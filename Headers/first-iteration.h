@@ -4,6 +4,7 @@
 #include "main.h"
 #include "word-types.h"
 
+int firstIteration(char *fileName, assemblerContext *context);
 int isKeyword(assemblerContext *context, char *str);
 int isNewSymbol(assemblerContext *context, char *str);
 int handleDirective(assemblerContext *context, char *str, int *DC,

@@ -88,7 +88,7 @@ int isNewSymbol(assemblerContext *context, char *str) {
 
 int handleDirective(assemblerContext *context, char *str, int *DC,
                     int symbolFlag) {
-    directive *dir = searchDirective(*(*context).directiveTable, str);
+    const directive *dir = searchDirective(*(*context).directiveTable, str);
 
     if (dir == NULL) {
         return FALSE;

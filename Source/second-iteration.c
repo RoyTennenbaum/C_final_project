@@ -1,2 +1,4 @@
-/* empty translation unit placeholder */
-void __keep_linker_happy2(void) {}
+#include <stdio.h>
+#include "../Headers/second-iteration.h"
+
+int secondIteration(char *fileName, assemblerContext *context) { return TRUE; }
