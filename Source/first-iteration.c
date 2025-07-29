@@ -59,8 +59,10 @@ int firstIteration(char *fileName, assemblerContext *context, int *ICF,
     *ICF = IC;
     *DCF = DC;
 
+    adjustDataSymbolAddresses((*context).symbolTable, *ICF);
+
     fclose(fp);
-    return 0;
+    return TRUE;
 }
 
 int isKeyword(assemblerContext *context, char *str) {
@@ -85,6 +87,17 @@ int isNewSymbol(assemblerContext *context, char *str) {
         return TRUE;
     }
     return FALSE;
+}
+
+void adjustDataSymbolAddresses(symbolTable sHead, int *ICF) {
+    symbolTable currentSymbol = sHead;
+
+    while (currentSymbol != NULL) {
+        if (currentSymbol.type == TYPE_DATA) {
+            currentSymbol.address += (*ICF);
+        }
+        currentSymbol = (*currentSymbol).next;
+    }
 }
 
 int handleDirective(assemblerContext *context, char *str, int *DC,

@@ -8,6 +8,7 @@ int firstIteration(char *fileName, assemblerContext *context, int *ICF,
                    int *DCF);
 int isKeyword(assemblerContext *context, char *str);
 int isNewSymbol(assemblerContext *context, char *str);
+void adjustDataSymbolAddresses(symbolTable sHead, int *ICF);
 int handleDirective(assemblerContext *context, char *str, int *DC,
                     int symbolFlag);
 int handleOperation(assemblerContext *context, char *str, int *IC,
