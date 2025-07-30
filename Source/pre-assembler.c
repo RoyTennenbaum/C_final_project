@@ -94,7 +94,7 @@ int preAssembler(char *srcFileName, assemblerContext *context)
         /* Determine line type based on first token */
         if (arg == NULL)
             state = EMPTY_LINE;
-        else if ((tempMacro = searchMacro((*context).macroTable, arg)) != NULL)
+        else if ((tempMacro = searchMacro(*(context->macroTable), arg)) != NULL)
             state = MACRO_SPREAD;
         else if (strcmp(arg, "mcro") == 0)
             state = MACRO_DEFINE;
@@ -436,9 +436,9 @@ int createOutputFile(const char *srcFileName, const char *amContent)
  */
 int isValidMacroLabel(char *arg, assemblerContext *context)
 {
-    return ((searchOperation((*context).operationTable, arg) == NULL) &&
-            (searchDirective((*context).directiveTable, arg) == NULL) &&
-            (searchRegister((*context).registers, arg) == NULL) &&
+    return ((searchOperation(*(context->operationTable), arg) == NULL) &&
+            (searchDirective(*(context->directiveTable), arg) == NULL) &&
+            (searchRegister(*(context->registers), arg) == NULL) &&
             (strlen(arg) <= MACRO_LABEL_BUFF))
                ? TRUE
                : FALSE;
