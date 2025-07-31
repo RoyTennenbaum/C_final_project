@@ -6,10 +6,28 @@
 #define REGISTER_NUM 8
 
 typedef enum { DATA, STRING, MAT, ENTRY, EXTERN } directiveType;
+typedef enum {
+    MOV = 0,
+    CMP,
+    ADD,
+    SUB,
+    NOT,
+    CLR,
+    LEA,
+    INC,
+    DEC,
+    JMP,
+    BNE,
+    RED,
+    PRN,
+    JSR,
+    RTS,
+    STP
+} operationNum;
 
 typedef struct {
     const char *name;
-    int number;
+    operationNum number;
 } operation;
 
 typedef struct {

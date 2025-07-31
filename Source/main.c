@@ -5,10 +5,10 @@ int main(int argc, char *argv[]) {
     symbolTable symbolTableHead = NULL;
     macroTable macroTableHead = NULL;
     static const operationTable opTable = {
-        {"mov", 0},  {"cmp", 1},  {"add", 2},  {"sub", 3},
-        {"not", 4},  {"clr", 5},  {"lea", 6},  {"inc", 7},
-        {"dec", 8},  {"jmp", 9},  {"bne", 10}, {"red", 11},
-        {"prn", 12}, {"jsr", 13}, {"rts", 14}, {"stp", 15}};
+        {"mov", MOV}, {"cmp", CMP}, {"add", ADD}, {"sub", SUB},
+        {"not", NOT}, {"clr", CLR}, {"lea", LEA}, {"inc", INC},
+        {"dec", DEC}, {"jmp", JMP}, {"bne", BNE}, {"red", RED},
+        {"prn", PRN}, {"jsr", JSR}, {"rts", RTS}, {"stp", STP}};
     static const directiveTable dirTable = {{".data", DATA},
                                             {".string", STRING},
                                             {".mat", MAT},

@@ -3,7 +3,7 @@
 
 #include "main.h"
 #include "word-types.h"
-/* Word that is handled only in the second iteration */
+/* 10-bit word that is handled only in the second iteration */
 #define NO_WORD_YET "??????????"
 
 int firstIteration(char *fileName, assemblerContext *context, int *ICF,

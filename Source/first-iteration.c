@@ -162,7 +162,7 @@ int handleOperation(assemblerContext *context, char *str, int *IC,
     }
 
     switch ((*op).number) {
-    case 0:
+    case MOV:
         /* Handle MOV operation */
         /* Update IC accordingly */
         /*cmdWord.opcode_bits = 0U;
@@ -170,81 +170,83 @@ int handleOperation(assemblerContext *context, char *str, int *IC,
         cmdWord.src_op_bits = 2U;
         L += 4;
         return TRUE;*/
+        return TRUE;
 
-    case 1:
+    case CMP:
         /* Handle CMP operation */
         /* Update IC accordingly */
         return TRUE;
 
-    case 2:
+    case ADD:
         /* Handle ADD operation */
         /* Generate opcode for addition */
         return TRUE;
 
-    case 3:
+    case SUB:
         /* Handle SUB operation */
         /* Update instruction format */
         return TRUE;
 
-    case 4:
+    case NOT:
         /* Handle NOT operation */
         /* Single operand */
         return TRUE;
 
-    case 5:
+    case CLR:
         /* Handle CLR operation */
         /* Use destination operand only */
         return TRUE;
 
-    case 6:
+    case LEA:
         /* Handle LEA operation */
         /* Load effective address */
         return TRUE;
 
-    case 7:
+    case INC:
         /* Handle INC operation */
         /* Unary operation */
         return TRUE;
 
-    case 8:
+    case DEC:
         /* Handle DEC operation */
         /* Decrement register/memory */
         return TRUE;
 
-    case 9:
+    case JMP:
         /* Handle JMP operation */
         /* Control transfer */
         return TRUE;
 
-    case 10:
+    case BNE:
         /* Handle BNE operation */
         /* Conditional jump */
         return TRUE;
 
-    case 11:
+    case RED:
         /* Handle RED operation */
         /* Read input to destination */
         return TRUE;
 
-    case 12:
+    case PRN:
         /* Handle PRN operation */
         /* Print numeric value */
         return TRUE;
 
-    case 13:
+    case JSR:
         /* Handle JSR operation */
         /* Jump to subroutine */
         return TRUE;
 
-    case 14:
+    case RTS:
         /* Handle RTS operation */
         /* Return from subroutine */
         return TRUE;
 
-    case 15:
+    case STP:
         /* Handle STOP operation */
         /* Halts program */
         return TRUE;
+
     default:
         return FALSE;
     }
