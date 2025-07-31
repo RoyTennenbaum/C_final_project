@@ -20,7 +20,7 @@ int firstIteration(char *fileName, assemblerContext *context, int *pICF,
     while (fgets(line, LINE_SIZE, fp) != NULL) {
         lineNum++;
         /* Get the first word in the line */
-        arg = strtok(line, " \t\n");
+        arg = strtok(line, " \t");
 
         /* Skip comment lines and empty lines */
         if (line[0] == ';' || arg == NULL) {
@@ -29,7 +29,7 @@ int firstIteration(char *fileName, assemblerContext *context, int *pICF,
 
         if (isNewSymbol(context, arg)) {
             symbolFlag = 1;
-            arg = strtok(NULL, " \t\n");
+            arg = strtok(NULL, " \t");
             /* Check if symbol is not placed in front of anything */
             if (arg == NULL) {
                 printf("ERROR: symbol is the only word in the line");
@@ -166,7 +166,7 @@ int handleOperation(assemblerContext *context, char *str, int *IC,
         /* Handle MOV operation */
         /* Update IC accordingly */
         /*cmdWord.opcode_bits = 0U;
-        str = strtok(NULL, " \t\n");
+        str = strtok(NULL, " \t");
         cmdWord.src_op_bits = 2U;
         L += 4;
         return TRUE;*/
