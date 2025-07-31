@@ -3,8 +3,8 @@
 #include <ctype.h>
 #include "../Headers/first-iteration.h"
 
-int firstIteration(char *fileName, assemblerContext *context, int *ICF,
-                   int *DCF) {
+int firstIteration(char *fileName, assemblerContext *context, int *pICF,
+                   int *pDCF) {
     char line[LINE_SIZE], *arg;
     int lineNum = 0; /* Mark line number for future error messages */
 
@@ -56,10 +56,10 @@ int firstIteration(char *fileName, assemblerContext *context, int *ICF,
         /* stop program */
     }
 
-    *ICF = IC;
-    *DCF = DC;
+    *pICF = IC;
+    *pDCF = DC;
 
-    adjustDataSymbolAddresses((*context).symbolTable, *ICF);
+    adjustDataSymbolAddresses(*(*context).symbolTable, pICF);
 
     fclose(fp);
     return TRUE;
@@ -89,14 +89,14 @@ int isNewSymbol(assemblerContext *context, char *str) {
     return FALSE;
 }
 
-void adjustDataSymbolAddresses(symbolTable sHead, int *ICF) {
-    symbolTable currentSymbol = sHead;
+void adjustDataSymbolAddresses(symbolTable sHead, int *pICF) {
+    symbolTable pCurrentSymbol = sHead;
 
-    while (currentSymbol != NULL) {
-        if (currentSymbol.type == TYPE_DATA) {
-            currentSymbol.address += (*ICF);
+    while (pCurrentSymbol != NULL) {
+        if ((*pCurrentSymbol).type == TYPE_DATA) {
+            (*pCurrentSymbol).address += (*pICF);
         }
-        currentSymbol = (*currentSymbol).next;
+        pCurrentSymbol = (*pCurrentSymbol).next;
     }
 }
 
@@ -105,7 +105,7 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
     const directive *dir = searchDirective(*(*context).directiveTable, str);
 
     if (dir == NULL) {
-        /* error */
+        /* not a directive */
         return FALSE;
     }
 
@@ -153,7 +153,8 @@ int handleDirective(assemblerContext *context, char *str, int *DC,
 int handleOperation(assemblerContext *context, char *str, int *IC,
                     int symbolFlag) {
     const operation *op = searchOperation(*(*context).operationTable, str);
-    int L = 0;
+    /*int L = 0;
+    cmdFirstWord cmdWord;*/
 
     if (op == NULL) {
         /* error */
@@ -164,7 +165,11 @@ int handleOperation(assemblerContext *context, char *str, int *IC,
     case 0:
         /* Handle MOV operation */
         /* Update IC accordingly */
-        return TRUE;
+        /*cmdWord.opcode_bits = 0U;
+        str = strtok(NULL, " \t\n");
+        cmdWord.src_op_bits = 2U;
+        L += 4;
+        return TRUE;*/
 
     case 1:
         /* Handle CMP operation */
