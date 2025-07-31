@@ -14,7 +14,7 @@ typedef struct {
     const registers *registers;
 } assemblerContext;
 
-char *preAssembler(char *srcFileName, assemblerContext *context);
+int preAssembler(char *srcFileName, assemblerContext *context);
 int firstIteration(char *fileName, assemblerContext *context, int *ICF,
                    int *DCF);
 int secondIteration(char *fileName, assemblerContext *context, int ICF,
