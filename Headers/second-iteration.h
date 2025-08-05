@@ -2,6 +2,7 @@
 #define SECOND_ITERATION_H
 
 #include "main.h"
+#include "op-word-types.h"
 
 int secondIteration(char *fileName, assemblerContext *context, int ICF,
                     int DCF);
