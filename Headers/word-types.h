@@ -1,12 +1,24 @@
 #ifndef WORD_TYPES_H
 #define WORD_TYPES_H
 
+typedef enum {
+    IMMEDIATE = 0,
+    DIRECT,
+    MATRIX,
+    REGISTER,
+    INVALID
+} addressingType;
+
 typedef struct {
     unsigned int aer_bits : 2;
     unsigned int dest_op_bits : 2;
     unsigned int src_op_bits : 2;
     unsigned int opcode_bits : 4;
 } cmdFirstWord;
+
+typedef struct {
+    unsigned int data_bits : 10;
+} directiveWord;
 
 typedef struct {
     unsigned int aer_bits : 2;

@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdlib.h>
 #include "../Headers/first-iteration.h"
 
 int firstIteration(char *fileName, assemblerContext *context, int *pICF,
                    int *pDCF) {
-    char line[LINE_SIZE], *arg;
-    int lineNum = 0; /* Mark line number for future error messages */
-
-    int IC = 0, DC = 0, symbolFlag = 0, errorFlag = 0;
+    int IC = 0, DC = 0, lineNum = 0, errorFlag = 0;
+    char line[LINE_SIZE], *arg, *newSymbolName;
+    const directive *dir;
+    const operation *op;
 
     FILE *fp = fopen(fileName, "r");
     if (fp == NULL) {
@@ -19,6 +20,7 @@ int firstIteration(char *fileName, assemblerContext *context, int *pICF,
 
     while (fgets(line, LINE_SIZE, fp) != NULL) {
         lineNum++;
+        newSymbolName = NULL;
         /* Get the first word in the line */
         arg = strtok(line, " \t");
 
@@ -28,27 +30,25 @@ int firstIteration(char *fileName, assemblerContext *context, int *pICF,
         }
 
         if (isNewSymbol(context, arg)) {
-            symbolFlag = 1;
+            newSymbolName = arg;
+            /* Store the next word of the current line in arg */
             arg = strtok(NULL, " \t");
-            /* Check if symbol is not placed in front of anything */
+            /* Check if symbol is followed by a directive or an instruction */
             if (arg == NULL) {
-                printf("ERROR: symbol is the only word in the line");
+                errorFlag = 1;
+                printf("ERROR: symbol is not followed by a directive or "
+                       "an instruction.");
                 continue;
             }
         }
 
-        if (handleDirective(context, arg, &DC, symbolFlag)) {
-            /* The current line is a directive sentence, it was handled, 
-            so we move to the next line */
-            continue;
-        }
-
-        /* If we reached this point, the line must be an operation sentence */
-        if (symbolFlag) {
-            insertSymbol((*context).symbolTable, arg, IC, TYPE_CODE);
-        }
-        if (handleOperation(context, arg, &IC, symbolFlag)) {
-            continue;
+        if ((dir = searchDirective(*(*context).directiveTable, arg)) != NULL) {
+            handleDirective(context, dir, &DC, newSymbolName);
+        } else if ((op = searchOperation(*(*context).operationTable, arg)) !=
+                   NULL) {
+            handleOperation(context, op, &IC, newSymbolName);
+        } else {
+            /* ERROR */
         }
     }
 
@@ -100,155 +100,220 @@ void adjustDataSymbolAddresses(symbolTable sHead, int *pICF) {
     }
 }
 
-int handleDirective(assemblerContext *context, char *str, int *DC,
-                    int symbolFlag) {
-    const directive *dir = searchDirective(*(*context).directiveTable, str);
+int isImmediateAddressing(char *operand) {
+    int i;
+    size_t len = strlen(operand);
 
-    if (dir == NULL) {
-        /* not a directive */
+    if (operand[0] != '#')
         return FALSE;
+
+    for (i = 1; i < len; i++) {
+        if (!isdigit(operand[i]))
+            return FALSE;
     }
+    return TRUE;
+}
+
+int isDirectAddressing(symbolTable sHead, char *operand) {
+    symbol *op = searchSymbol(sHead, operand);
+    if (op == NULL || ((*op).type != TYPE_DATA && (*op).type != TYPE_EXTERNAL))
+        return FALSE;
+    return TRUE;
+}
+
+int isMatrixAddressing(const registers regs, char *operand) {
+    size_t len = strlen(operand);
+    char reg1[3], reg2[3];
+    int labelBuf = LINE_SIZE - len;
+    size_t labelLen = len - 8;
+
+    /* The format should be at least 8 chars, for it contains "[rX][rY]" */
+    if (len < 8) {
+        return 0;
+    }
+
+    /* Check brackets at specific positions */
+    if (operand[len - 8] != '[' || operand[len - 5] != ']' ||
+        operand[len - 4] != '[' || operand[len - 1] != ']')
+        return FALSE;
+
+    /* Extract registers */
+    reg1[0] = operand[len - 7];
+    reg1[1] = operand[len - 6];
+    reg1[2] = '\0';
+    reg2[0] = operand[len - 3];
+    reg2[1] = operand[len - 2];
+    reg2[2] = '\0';
+
+    if (searchRegister(regs, reg1) == NULL ||
+        searchRegister(regs, reg2) == NULL)
+        return FALSE;
+
+    /* Label has non-positive length or too long */
+    if (labelLen <= 0 || labelLen >= labelBuf)
+        return FALSE;
+
+    return TRUE;
+}
+
+int isRegisterAddressing(const registers regs, char *operand) {
+    if (searchRegister(regs, operand) == NULL)
+        return FALSE;
+    return TRUE;
+}
+
+unsigned int findAddressMethod(assemblerContext *context, char *operand) {
+    if (isImmediateAddressing(operand))
+        return IMMEDIATE;
+    else if (isDirectAddressing(*(*context).symbolTable, operand))
+        return DIRECT;
+    else if (isMatrixAddressing(*(*context).registers, operand))
+        return MATRIX;
+    else if (isRegisterAddressing(*(*context).registers, operand))
+        return REGISTER;
+    else
+        return INVALID;
+}
+
+void handleDirective(assemblerContext *context, const directive *dir, int *DC,
+                     char *symbolName) {
+    directiveWord dirWord;
 
     switch ((*dir).type) {
     case DATA:
-        if (symbolFlag) {
-            insertSymbol((*context).symbolTable, str, *DC, TYPE_DATA);
+        if (symbolName != NULL) {
+            insertSymbol((*context).symbolTable, symbolName, *DC, TYPE_DATA);
         }
+        /*
+        while ((arg = strtok(NULL, " \t")) != NULL) {
+            if (isNum(arg)) {
+                dirWord.data_bits = arg;
+                //improve insertLineData to handle DC AND IC...
+                //insertLineData(codeImage, )
+            } else {
+                printf("ERROR: arg is not a number");
+            }
+        }
+        */
         /* Code into "word-type" memory */
         /* encodeDataDir()*/
         /* Update DC accordingly */
-        return TRUE;
+        break;
 
     case STRING:
-        if (symbolFlag) {
-            insertSymbol((*context).symbolTable, str, *DC, TYPE_DATA);
+        if (symbolName != NULL) {
+            insertSymbol((*context).symbolTable, symbolName, *DC, TYPE_DATA);
         }
         /* Code into "word-type" memory */
         /* Update DC accordingly */
-        return TRUE;
+        break;
 
     case MAT:
-        if (symbolFlag) {
-            insertSymbol((*context).symbolTable, str, *DC, TYPE_DATA);
+        if (symbolName != NULL) {
+            insertSymbol((*context).symbolTable, symbolName, *DC, TYPE_DATA);
         }
         /* Code into "word-type" memory */
         /* Update DC accordingly */
-        return TRUE;
+        break;
 
     case ENTRY:
         /* handled in second iteration */
-        return TRUE;
+        break;
 
     case EXTERN:
-        insertSymbol((*context).symbolTable, str, 0, TYPE_EXTERNAL);
-        /* handled in second iteration */
-        return TRUE;
+        insertSymbol((*context).symbolTable, symbolName, 0, TYPE_EXTERNAL);
+        break;
 
     default:
-        return FALSE;
+        /* ERROR */
+        break;
     }
-    return FALSE;
 }
 
-int handleOperation(assemblerContext *context, char *str, int *IC,
-                    int symbolFlag) {
-    const operation *op = searchOperation(*(*context).operationTable, str);
-    /*int L = 0;
-    cmdFirstWord cmdWord;*/
-
-    if (op == NULL) {
-        /* error */
-        return FALSE;
+void handleTwoOperandOp(const operation *op, cmdFirstWord firstWord,
+                        char *operand1, char *operand2, unsigned int method1,
+                        unsigned int method2, assemblerContext *context) {
+    registerAddressingWord regWord;
+    const registerInfo *reg1, *reg2;
+    firstWord.opcode_bits = (*op).number;
+    /* insertLineData(..., firstWord); */
+    if (method1 == REGISTER && method2 == REGISTER) {
+        reg1 = searchRegister(*(*context).registers, operand1);
+        reg2 = searchRegister(*(*context).registers, operand2);
+        regWord.src_reg_bits = (*reg1).number;
+        regWord.dest_reg_bits = (*reg2).number;
+        /* insertLineData(..., regWord); */
+    } else {
+        /* continue program*/
     }
+}
+
+void handleOneOperandOp(const operation *op, cmdFirstWord firstWord,
+                        char *operand1, unsigned int method1,
+                        assemblerContext *context) {
+    firstWord.opcode_bits = (*op).number;
+}
+
+void handleNoOperandOp(const operation *op, cmdFirstWord firstWord,
+                       assemblerContext *context) {
+    firstWord.opcode_bits = (*op).number;
+}
+
+void handleOperation(assemblerContext *context, const operation *op, int *IC,
+                     char *symbolName) {
+    char *operand1, *operand2;
+    unsigned int method1 = INVALID, method2 = INVALID;
+    cmdFirstWord firstWord;
+
+    if (symbolName != NULL) {
+        insertSymbol((*context).symbolTable, symbolName, *IC, TYPE_CODE);
+    }
+
+    operand1 = strtok(NULL, ", \t");
+    operand2 = strtok(NULL, " \t");
+    if (strtok(NULL, " \t") != NULL) {
+        /* error - too many operands */
+        return;
+    }
+
+    if (operand1 != NULL)
+        method1 = findAddressMethod(context, operand1);
+    if (operand2 != NULL)
+        method2 = findAddressMethod(context, operand2);
+
+    if (method1 != INVALID)
+        firstWord.src_op_bits = method1;
+    if (method2 != INVALID)
+        firstWord.dest_op_bits = method2;
 
     switch ((*op).number) {
     case MOV:
-        /* Handle MOV operation */
-        /* Update IC accordingly */
-        /*cmdWord.opcode_bits = 0U;
-        str = strtok(NULL, " \t");
-        cmdWord.src_op_bits = 2U;
-        L += 4;
-        return TRUE;*/
-        return TRUE;
-
     case CMP:
-        /* Handle CMP operation */
-        /* Update IC accordingly */
-        return TRUE;
-
     case ADD:
-        /* Handle ADD operation */
-        /* Generate opcode for addition */
-        return TRUE;
-
     case SUB:
-        /* Handle SUB operation */
-        /* Update instruction format */
-        return TRUE;
+    case LEA:
+        handleTwoOperandOp(op, firstWord, operand1, operand2, method1, method2,
+                           context);
+        break;
 
     case NOT:
-        /* Handle NOT operation */
-        /* Single operand */
-        return TRUE;
-
     case CLR:
-        /* Handle CLR operation */
-        /* Use destination operand only */
-        return TRUE;
-
-    case LEA:
-        /* Handle LEA operation */
-        /* Load effective address */
-        return TRUE;
-
     case INC:
-        /* Handle INC operation */
-        /* Unary operation */
-        return TRUE;
-
     case DEC:
-        /* Handle DEC operation */
-        /* Decrement register/memory */
-        return TRUE;
-
     case JMP:
-        /* Handle JMP operation */
-        /* Control transfer */
-        return TRUE;
-
     case BNE:
-        /* Handle BNE operation */
-        /* Conditional jump */
-        return TRUE;
-
     case RED:
-        /* Handle RED operation */
-        /* Read input to destination */
-        return TRUE;
-
     case PRN:
-        /* Handle PRN operation */
-        /* Print numeric value */
-        return TRUE;
-
     case JSR:
-        /* Handle JSR operation */
-        /* Jump to subroutine */
-        return TRUE;
+        handleOneOperandOp(op, firstWord, operand1, method1, context);
+        break;
 
     case RTS:
-        /* Handle RTS operation */
-        /* Return from subroutine */
-        return TRUE;
-
     case STP:
-        /* Handle STOP operation */
-        /* Halts program */
-        return TRUE;
+        handleNoOperandOp(op, firstWord, context);
+        break;
 
     default:
-        return FALSE;
+        break;
     }
-    return FALSE;
 }
