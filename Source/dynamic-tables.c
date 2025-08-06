@@ -53,7 +53,7 @@ void insertSymbol(symbolTable *sHeadP, char *label, int address,
  * Returns the symbol if found, else NULL.
  * @param sHead Points to the pointer of the first symbolTable node.
  */
-symbol *searchSymbol(symbolTable sHead, char *label) {
+symbol *searchSymbol(symbolTable sHead, const char *label) {
     symbolTable ptr = sHead;
 
     while (ptr != NULL) {

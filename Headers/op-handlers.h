@@ -15,20 +15,21 @@ typedef enum {
 void handleOperation(assemblerContext *context, const operation *op, int *IC,
                      char *symbolName);
 
-unsigned int findAddressMethod(assemblerContext *context, char *operand);
-
-void handleTwoOperandOp(const operation *op, cmdFirstWord firstWord,
-                        char *operand1, char *operand2, unsigned int method1,
-                        unsigned int method2, assemblerContext *context);
-void handleOneOperandOp(const operation *op, cmdFirstWord firstWord,
-                        char *operand1, unsigned int method1,
+void handleTwoOperandOp(const operation *op, const char *operand1,
+                        const char *operand2, assemblerContext *context);
+void handleOneOperandOp(const operation *op, const char *operand1,
                         assemblerContext *context);
-void handleNoOperandOp(const operation *op, cmdFirstWord firstWord,
-                       assemblerContext *context);
+void handleNoOperandOp(const operation *op, assemblerContext *context);
 
-int isImmediateAddressing(char *operand);
-int isDirectAddressing(symbolTable sHead, char *operand);
-int isMatrixAddressing(const registers regs, char *operand);
-int isRegisterAddressing(const registers regs, char *operand);
+opFirstWord encodeOpFirstWord(const operation *op, const char *operand1,
+                              const char *operand2, unsigned int *pMethod1,
+                              unsigned int *pMethod2,
+                              assemblerContext *context);
+
+unsigned int findAddressMethod(assemblerContext *context, const char *operand);
+int isImmediateAddressing(const char *operand);
+int isDirectAddressing(symbolTable sHead, const char *operand);
+int isMatrixAddressing(const registers regs, const char *operand);
+int isRegisterAddressing(const registers regs, const char *operand);
 
 #endif

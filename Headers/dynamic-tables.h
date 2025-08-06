@@ -37,7 +37,7 @@ typedef lineData *codeImage;
 /* Function prototypes */
 void insertSymbol(symbolTable *sHeadP, char *label, int address,
                   symbolType type);
-symbol *searchSymbol(symbolTable sHead, char *label);
+symbol *searchSymbol(symbolTable sHead, const char *label);
 void displaySymbol(symbolTable sHead); /* for debugging */
 void insertMacro(macroTable *mHeadP, char *label, char *body);
 macro *searchMacro(macroTable mHead, char *label);

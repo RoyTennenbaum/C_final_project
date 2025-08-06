@@ -6,30 +6,17 @@
 
 void handleOperation(assemblerContext *context, const operation *op, int *IC,
                      char *symbolName) {
-    char *operand1, *operand2;
-    unsigned int method1 = INVALID, method2 = INVALID;
-    cmdFirstWord firstWord;
+    char *operand1 = strtok(NULL, ", \t");
+    char *operand2 = strtok(NULL, " \t");
 
     if (symbolName != NULL) {
         insertSymbol((*context).symbolTable, symbolName, *IC, TYPE_CODE);
     }
 
-    operand1 = strtok(NULL, ", \t");
-    operand2 = strtok(NULL, " \t");
     if (strtok(NULL, " \t") != NULL) {
-        /* error - too many operands */
+        printf("ERROR: Too many operands");
         return;
     }
-
-    if (operand1 != NULL)
-        method1 = findAddressMethod(context, operand1);
-    if (operand2 != NULL)
-        method2 = findAddressMethod(context, operand2);
-
-    if (method1 != INVALID)
-        firstWord.src_op_bits = method1;
-    if (method2 != INVALID)
-        firstWord.dest_op_bits = method2;
 
     switch ((*op).number) {
     case MOV:
@@ -37,8 +24,9 @@ void handleOperation(assemblerContext *context, const operation *op, int *IC,
     case ADD:
     case SUB:
     case LEA:
-        handleTwoOperandOp(op, firstWord, operand1, operand2, method1, method2,
-                           context);
+        if (operand1 == NULL || operand2 == NULL)
+            printf("ERROR: Missing operands");
+        handleTwoOperandOp(op, operand1, operand2, context);
         break;
 
     case NOT:
@@ -50,12 +38,14 @@ void handleOperation(assemblerContext *context, const operation *op, int *IC,
     case RED:
     case PRN:
     case JSR:
-        handleOneOperandOp(op, firstWord, operand1, method1, context);
+        if (operand1 == NULL)
+            printf("ERROR: Missing operand");
+        handleOneOperandOp(op, operand1, context);
         break;
 
     case RTS:
     case STP:
-        handleNoOperandOp(op, firstWord, context);
+        handleNoOperandOp(op, context);
         break;
 
     default:
@@ -63,7 +53,79 @@ void handleOperation(assemblerContext *context, const operation *op, int *IC,
     }
 }
 
-unsigned int findAddressMethod(assemblerContext *context, char *operand) {
+void handleTwoOperandOp(const operation *op, const char *operand1,
+                        const char *operand2, assemblerContext *context) {
+    unsigned int method1, method2;
+
+    opFirstWord word =
+        encodeOpFirstWord(op, operand1, operand2, &method1, &method2, context);
+    /*insertLineData(..., word);*/
+
+    /*registerPairWord regWord;
+    if (method1 == IMMEDIATE) {
+    }
+    registerInfo reg1, reg2;
+    if (method1 == REGISTER && method2 == REGISTER) {
+        reg1 = searchRegister(*(*context).registers, operand1);
+        reg2 = searchRegister(*(*context).registers, operand2);
+        regWord.reg1_bits = (reg1).number;
+        regWord.reg2_bits = (reg2).number;
+        insertLineData(..., regWord);
+    }*/
+}
+
+void handleOneOperandOp(const operation *op, const char *operand1,
+                        assemblerContext *context) {
+    unsigned int dummyMethod, method;
+    opFirstWord word =
+        encodeOpFirstWord(op, operand1, NULL, &dummyMethod, &method, context);
+    /*insertLineData(..., word);*/
+}
+
+void handleNoOperandOp(const operation *op, assemblerContext *context) {
+    unsigned int dummyMethod1, dummyMethod2;
+    opFirstWord word = encodeOpFirstWord(op, NULL, NULL, &dummyMethod1,
+                                         &dummyMethod2, context);
+    /*insertLineData(..., word);*/
+}
+
+opFirstWord encodeOpFirstWord(const operation *op, const char *operand1,
+                              const char *operand2, unsigned int *pMethod1,
+                              unsigned int *pMethod2,
+                              assemblerContext *context) {
+    opFirstWord word;
+
+    word.opcode_bits = (*op).number;
+
+    if (operand1 && operand2) {
+        *pMethod1 = findAddressMethod(context, operand1);
+        *pMethod2 = findAddressMethod(context, operand2);
+
+        if (*pMethod1 == INVALID || *pMethod2 == INVALID) {
+            printf("ERROR: Invalid addressing method");
+        }
+
+        word.src_op_bits = *pMethod1;
+        word.dest_op_bits = *pMethod2;
+    } else if (operand1) {
+        *pMethod1 = 0;
+        *pMethod2 = findAddressMethod(context, operand1);
+
+        if (*pMethod2 == INVALID)
+            printf("ERROR: Invalid addressing method");
+
+        /* If only one operand, it's the destination operand */
+        word.src_op_bits = 0;
+        word.dest_op_bits = *pMethod2;
+    } else {
+        *pMethod1 = 0;
+        *pMethod2 = 0;
+    }
+
+    return word;
+}
+
+unsigned int findAddressMethod(assemblerContext *context, const char *operand) {
     if (isImmediateAddressing(operand))
         return IMMEDIATE;
     else if (isDirectAddressing(*(*context).symbolTable, operand))
@@ -76,36 +138,7 @@ unsigned int findAddressMethod(assemblerContext *context, char *operand) {
         return INVALID;
 }
 
-void handleTwoOperandOp(const operation *op, cmdFirstWord firstWord,
-                        char *operand1, char *operand2, unsigned int method1,
-                        unsigned int method2, assemblerContext *context) {
-    registerAddressingWord regWord;
-    const registerInfo *reg1, *reg2;
-    firstWord.opcode_bits = (*op).number;
-    /* insertLineData(..., firstWord); */
-    if (method1 == REGISTER && method2 == REGISTER) {
-        reg1 = searchRegister(*(*context).registers, operand1);
-        reg2 = searchRegister(*(*context).registers, operand2);
-        regWord.src_reg_bits = (*reg1).number;
-        regWord.dest_reg_bits = (*reg2).number;
-        /* insertLineData(..., regWord); */
-    } else {
-        /* continue program*/
-    }
-}
-
-void handleOneOperandOp(const operation *op, cmdFirstWord firstWord,
-                        char *operand1, unsigned int method1,
-                        assemblerContext *context) {
-    firstWord.opcode_bits = (*op).number;
-}
-
-void handleNoOperandOp(const operation *op, cmdFirstWord firstWord,
-                       assemblerContext *context) {
-    firstWord.opcode_bits = (*op).number;
-}
-
-int isImmediateAddressing(char *operand) {
+int isImmediateAddressing(const char *operand) {
     int i;
     size_t len = strlen(operand);
 
@@ -119,14 +152,14 @@ int isImmediateAddressing(char *operand) {
     return TRUE;
 }
 
-int isDirectAddressing(symbolTable sHead, char *operand) {
+int isDirectAddressing(symbolTable sHead, const char *operand) {
     symbol *op = searchSymbol(sHead, operand);
     if (op == NULL || ((*op).type != TYPE_DATA && (*op).type != TYPE_EXTERNAL))
         return FALSE;
     return TRUE;
 }
 
-int isMatrixAddressing(const registers regs, char *operand) {
+int isMatrixAddressing(const registers regs, const char *operand) {
     size_t len = strlen(operand);
     char reg1[3], reg2[3];
     int labelBuf = LINE_SIZE - len;
@@ -161,7 +194,7 @@ int isMatrixAddressing(const registers regs, char *operand) {
     return TRUE;
 }
 
-int isRegisterAddressing(const registers regs, char *operand) {
+int isRegisterAddressing(const registers regs, const char *operand) {
     if (searchRegister(regs, operand) == NULL)
         return FALSE;
     return TRUE;
