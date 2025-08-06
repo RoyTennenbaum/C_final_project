@@ -13,19 +13,20 @@
 /*
  * Pre-Assembler Main Function
  *
- * Processes source file for macro definitions and expansions, generating
- * an intermediate .am file with all macros expanded.
+ * Reads the source file and processes macros to create a .am file
  *
  * Parameters:
- *   srcFileName - Name of source assembly file to process
- *   context     - Assembler context containing symbol and macro tables
+ *   fileName - source file name without extension
+ *   context  - assembler context with tables
  *
  * Returns:
- *   1 on success, 0 on failure
+ *   TRUE on success, FALSE on failure
  */
-int preAssembler(char *srcFileName, assemblerContext *context) {
+int preAssembler(char *fileName, assemblerContext *context)
+{
     /* File handling variables */
     FILE *srcFile;
+    char *srcFileName;
 
     /* Content buffer variables */
     char *amContent;
@@ -44,40 +45,58 @@ int preAssembler(char *srcFileName, assemblerContext *context) {
     int errorFlag = FALSE;
     int res;
 
+    srcFileName = malloc(strlen(fileName) + 4);
+    if (srcFileName == NULL)
+    {
+        fprintf(stderr, "Error: failed to allocate memory\n");
+        return FALSE;
+    }
+
+    strcpy(srcFileName, fileName);
+    strcat(srcFileName, ".as"); /* Make filename.as */
+
     /* Open source file for reading */
     srcFile = fopen(srcFileName, "r");
-    if (srcFile == NULL) {
-        fprintf(stderr, "Error: Cannot open file '%s'\n", srcFileName);
-        return 0;
+    if (srcFile == NULL)
+    {
+        fprintf(stderr, "Error: cannot open file '%s'\n", srcFileName);
+        free(srcFileName);
+        return FALSE;
     }
 
     /* Allocate initial content buffer */
     amContent = calloc(contentCapacity, sizeof(char));
-    if (amContent == NULL) {
-        fprintf(stderr, "Error: Memory allocation failed\n");
+    if (amContent == NULL)
+    {
+        fprintf(stderr, "Error: failed to allocate memory\n");
+        free(srcFileName);
         fclose(srcFile);
-        return 0;
+        return FALSE;
     }
 
     /* Main processing loop - read and process each line */
-    while (fgets(line, LINE_SIZE, srcFile) != NULL) {
+    while (fgets(line, LINE_SIZE, srcFile) != NULL)
+    {
         lineNum++;
         state = NORMAL_LINE;
 
-        /* Expand content buffer by one line size for each line read */
+        /* Ensure sufficient buffer capacity for new content */
         contentCapacity += LINE_SIZE;
         newContent = realloc(amContent, contentCapacity);
-        if (newContent == NULL) {
-            fprintf(stderr, "Error at line %d: Memory allocation failed\n",
-                    lineNum);
-            errorFlag = TRUE;
-            return FALSE; /* Critical error - cannot continue without memory */
+        if (newContent == NULL)
+        {
+            fprintf(stderr, "Error at line %d: failed to allocate memory\n", lineNum);
+            free(srcFileName);
+            free(amContent);
+            fclose(srcFile);
+            return FALSE;
         }
         amContent = newContent;
 
         /* Check for line length errors but continue processing */
-        if (strlen(line) >= LINE_SIZE - 1) {
-            fprintf(stderr, "Error at line %d: Line too long\n", lineNum);
+        if (strlen(line) >= LINE_SIZE - 1)
+        {
+            fprintf(stderr, "Error at line %d: line is too long\n", lineNum);
             errorFlag = TRUE;
         }
 
@@ -95,113 +114,191 @@ int preAssembler(char *srcFileName, assemblerContext *context) {
             state = MACRO_DEFINE;
 
         /* Process line according to its type */
-        switch (state) {
+        switch (state)
+        {
         case EMPTY_LINE:
-            /* Add newline for empty lines */
-            if (addToContent(&amContent, &contentCapacity, "\n") != TRUE) {
-                fprintf(stderr, "Error at line %d: Failed to add content\n",
-                        lineNum);
-                errorFlag = TRUE;
+            /* Handle empty or whitespace-only lines */
+            res = handleEmptyLine(&amContent, &contentCapacity, lineNum);
+            if (res == MEMORY_ALLOCATION_ERROR)
+            {
+                free(srcFileName);
+                free(amContent);
+                fclose(srcFile);
+                return FALSE;
             }
+            else if (res != TRUE)
+                errorFlag = TRUE;
+
             break;
 
         case MACRO_SPREAD:
-            /* Expand macro with its arguments */
-            if (handleMacroSpread(tempMacro, arg, &amContent,
-                                  &contentCapacity) != TRUE) {
-                fprintf(stderr, "Error at line %d: Macro expansion failed\n",
-                        lineNum);
-                errorFlag = TRUE;
+            /* Expand macro call with its arguments */
+            res = handleMacroSpread(tempMacro, &arg, &amContent, &contentCapacity, lineNum);
+            if (res == MEMORY_ALLOCATION_ERROR)
+            {
+                free(srcFileName);
+                free(amContent);
+                fclose(srcFile);
+                return FALSE;
             }
+            else if (res != TRUE)
+                errorFlag = TRUE;
+
             break;
 
         case MACRO_DEFINE:
-            res = 0;
-            /* Process macro definition */
-            if ((res = handleMacroDefinition(arg, context, srcFile,
-                                             &lineNum)) != TRUE) {
-                fprintf(stderr, "Error at line %d: Invalid macro definition\n",
-                        lineNum);
-                errorFlag = TRUE;
-                if (res == MEMORY_ALLOCATION_ERROR)
-                    return FALSE;
+            /* Process macro definition from "mcro" to "mcroend" */
+            res = handleMacroDefinition(&arg, context, srcFile, &lineNum);
+            if (res == MEMORY_ALLOCATION_ERROR)
+            {
+                free(srcFileName);
+                free(amContent);
+                fclose(srcFile);
+                return FALSE;
             }
+            else if (res != TRUE)
+                errorFlag = TRUE;
+
             break;
 
         case NORMAL_LINE:
-            /* Copy normal assembly line as-is */
-            if (addToContent(&amContent, &contentCapacity, line) != TRUE) {
-                fprintf(stderr, "Error at line %d: Failed to add content\n",
-                        lineNum);
-                errorFlag = TRUE;
+            /* Copy regular assembly instruction as-is */
+            res = addToContent(&amContent, &contentCapacity, line, lineNum);
+            if (res == MEMORY_ALLOCATION_ERROR)
+            {
+                free(srcFileName);
+                free(amContent);
+                fclose(srcFile);
+                return FALSE;
             }
+            else if (res != TRUE)
+                errorFlag = TRUE;
+
             break;
 
         default:
             /* Unexpected line type */
-            fprintf(stderr, "Error at line %d: Unknown line type\n", lineNum);
+            fprintf(stderr, "Error at line %d: unknown line type\n", lineNum);
             errorFlag = TRUE;
             break;
         }
     }
 
-    /* Create output file only if no errors occurred */
-    if (errorFlag == FALSE) {
-        res = 0;
-        if (createOutputFile(srcFileName, amContent) != TRUE) {
+    /* Create output .am file only if no syntax errors occurred */
+    if (errorFlag == FALSE)
+    {
+        res = createOutputFile(fileName, amContent);
+        if (res == MEMORY_ALLOCATION_ERROR)
+        {
+            free(srcFileName);
+            free(amContent);
+            fclose(srcFile);
+            return FALSE;
+        }
+        else if (res != TRUE)
+        {
             errorFlag = TRUE;
-            fprintf(stderr, "Error: Failed to create output file.\n");
-            if (res == MEMORY_ALLOCATION_ERROR)
-                return FALSE;
         }
     }
 
     /* Cleanup resources */
-    fclose(srcFile);
+    free(srcFileName);
     free(amContent);
+    fclose(srcFile);
 
     return (errorFlag) ? FALSE : TRUE;
 }
 
 /*
+ * Handle Empty Line
+ *
+ * Adds a newline to keep empty lines in output
+ */
+int handleEmptyLine(char **amContent, size_t *contentCapacity, int lineNum)
+{
+    int res;
+
+    res = addToContent(amContent, contentCapacity, "\n", lineNum);
+    if (res == MEMORY_ALLOCATION_ERROR)
+    {
+        fprintf(stderr, "Error at line %d: failed to allocate memory\n", lineNum);
+        return MEMORY_ALLOCATION_ERROR;
+    }
+    else if (res != TRUE)
+    {
+        fprintf(stderr, "Error at line %d: failed to insert empty line\n", lineNum);
+        return FALSE;
+    }
+    return TRUE;
+}
+
+/*
  * Handle Macro Expansion
  *
- * Expands a macro call by inserting the macro body followed by any
- * arguments passed to the macro.
- *
- * Parameters:
- *   tempMacro       - Pointer to macro structure containing body
- *   firstArg        - First token (macro name) from tokenization
- *   amContent       - Pointer to content buffer
- *   contentCapacity - Pointer to content buffer capacity
- *
- * Returns:
- *   1 on success, 0 on failure
+ * Replaces macro call with macro body + arguments
  */
-int handleMacroSpread(macro *tempMacro, char *firstArg, char **amContent,
-                      size_t *contentCapacity) {
+int handleMacroSpread(macro *tempMacro, char **argP, char **amContent, size_t *contentCapacity, int lineNum)
+{
+    int res;
+
     /* Insert macro body into output */
-    if (addToContent(amContent, contentCapacity, (*tempMacro).body) != 1)
+    res = addToContent(amContent, contentCapacity, (*tempMacro).body, lineNum);
+    if (res == MEMORY_ALLOCATION_ERROR)
+    {
+        fprintf(stderr, "Error at line %d: failed to allocate memory\n", lineNum);
+        return MEMORY_ALLOCATION_ERROR;
+    }
+    else if (res != TRUE)
+    {
+        fprintf(stderr, "Error at line %d: macro expansion failed\n", lineNum);
         return FALSE;
+    }
 
-    /* Continue tokenization from where preAssembler left off */
-    /* firstArg contains macro name, get subsequent arguments */
-    firstArg = strtok(NULL, " \t");
+    /* Get macro arguments and add them */
+    *argP = strtok(NULL, " \t");
 
-    /* Add all remaining arguments separated by spaces */
-    while (firstArg != NULL) {
-        if (addToContent(amContent, contentCapacity, " ") != 1)
+    /* Add each argument with space before it */
+    while (*argP != NULL)
+    {
+        res = addToContent(amContent, contentCapacity, " ", lineNum);
+        if (res == MEMORY_ALLOCATION_ERROR)
+        {
+            fprintf(stderr, "Error at line %d: failed to allocate memory\n", lineNum);
+            return MEMORY_ALLOCATION_ERROR;
+        }
+        else if (res != TRUE)
+        {
+            fprintf(stderr, "Error at line %d: macro expansion failed\n", lineNum);
             return FALSE;
+        }
 
-        if (addToContent(amContent, contentCapacity, firstArg) != 1)
+        res = addToContent(amContent, contentCapacity, *argP, lineNum);
+        if (res == MEMORY_ALLOCATION_ERROR)
+        {
+            fprintf(stderr, "Error at line %d: failed to allocate memory\n", lineNum);
+            return MEMORY_ALLOCATION_ERROR;
+        }
+        else if (res != TRUE)
+        {
+            fprintf(stderr, "Error at line %d: macro expansion failed\n", lineNum);
             return FALSE;
+        }
 
-        firstArg = strtok(NULL, " \t");
+        *argP = strtok(NULL, " \t");
     }
 
     /* Add newline to complete the expansion */
-    if (addToContent(amContent, contentCapacity, "\n") != 1)
+    res = addToContent(amContent, contentCapacity, "\n", lineNum);
+    if (res == MEMORY_ALLOCATION_ERROR)
+    {
+        fprintf(stderr, "Error at line %d: failed to allocate memory\n", lineNum);
+        return MEMORY_ALLOCATION_ERROR;
+    }
+    else if (res != TRUE)
+    {
+        fprintf(stderr, "Error at line %d: macro expansion failed\n", lineNum);
         return FALSE;
+    }
 
     return TRUE;
 }
@@ -209,20 +306,10 @@ int handleMacroSpread(macro *tempMacro, char *firstArg, char **amContent,
 /*
  * Handle Macro Definition
  *
- * Processes a macro definition starting with "mcro" and ending with "mcroend",
- * storing the macro name and body in the macro table.
- *
- * Parameters:
- *   firstArg - First token ("mcro") from tokenization
- *   context  - Assembler context containing macro table
- *   srcFile  - Source file handle for reading macro body
- *   lineNum  - Pointer to current line number (updated as lines are read)
- *
- * Returns:
- *   1 on success, 0 on failure
+ * Reads macro from "mcro" to "mcroend" and stores it
  */
-int handleMacroDefinition(char *firstArg, assemblerContext *context,
-                          FILE *srcFile, int *lineNum) {
+int handleMacroDefinition(char **argP, assemblerContext *context, FILE *srcFile, int *lineNumP)
+{
     /* Macro storage variables */
     char *macroLabel;
     char *macroBody;
@@ -242,185 +329,143 @@ int handleMacroDefinition(char *firstArg, assemblerContext *context,
     macroFlag = TRUE; /* Continue reading until "mcroend" found */
 
     /* Get macro name (next token after "mcro") */
-    firstArg = strtok(NULL, " \t");
+    *argP = strtok(NULL, " \t");
 
     /* Validate macro name doesn't conflict with reserved words */
-    if (!isValidMacroLabel(firstArg, context)) {
-        fprintf(stderr, "Error at line %d: Invalid macro name '%s'\n", *lineNum,
-                firstArg);
+    if (!isValidMacroLabel(*argP, context))
+    {
+        fprintf(stderr, "Error at line %d: invalid macro name '%s'\n", *lineNumP, *argP);
         return FALSE;
     }
 
     /* Allocate memory for macro name */
-    macroLabel = malloc(strlen(firstArg) + 1);
-    if (macroLabel == NULL) {
-        fprintf(stderr,
-                "Error at line %d: Memory allocation failed for macro label\n",
-                *lineNum);
+    macroLabel = malloc(strlen(*argP) + 1);
+    if (macroLabel == NULL)
+    {
+        fprintf(stderr, "Error at line %d: failed to allocate memory\n", *lineNumP);
         return MEMORY_ALLOCATION_ERROR;
     }
-    strcpy(macroLabel, firstArg);
+    strcpy(macroLabel, *argP);
 
     /* Allocate initial buffer for macro body */
     macroBody = calloc(macroBodyCapacity, sizeof(char));
-    if (macroBody == NULL) {
-        fprintf(stderr,
-                "Error at line %d: Memory allocation failed for macro body\n",
-                *lineNum);
+    if (macroBody == NULL)
+    {
+        fprintf(stderr, "Error at line %d: failed to allocate memory\n", *lineNumP);
         free(macroLabel);
         return MEMORY_ALLOCATION_ERROR;
     }
 
-    /* Read macro body lines until "mcroend" is found */
-    while (macroFlag && fgets(macroLine, LINE_SIZE, srcFile) != NULL) {
-        (*lineNum)++;
+    /* Read lines until we find "mcroend" */
+    while (macroFlag && fgets(macroLine, LINE_SIZE, srcFile) != NULL)
+    {
+        (*lineNumP)++;
 
-        /* Expand buffer by one line size for each line read */
+        /* Make room for this line */
         macroBodyCapacity += LINE_SIZE;
         newBody = realloc(macroBody, macroBodyCapacity);
-        if (newBody == NULL) {
-            fprintf(stderr,
-                    "Error at line %d: Memory allocation failed during macro "
-                    "expansion\n",
-                    *lineNum);
+        if (newBody == NULL)
+        {
+            fprintf(stderr, "Error at line %d: failed to allocate memory\n", *lineNumP);
             free(macroLabel);
             free(macroBody);
             return MEMORY_ALLOCATION_ERROR;
         }
         macroBody = newBody;
 
-        /* Check if this line contains "mcroend" */
-        firstArg = strtok(macroLine, " \t");
-        if (firstArg != NULL && strcmp(firstArg, "mcroend") == 0) {
-            macroFlag = FALSE; /* End of macro definition */
-        } else {
-            /* Add this line to macro body */
+        /* Check if line has "mcroend" */
+        *argP = strtok(macroLine, " \t");
+        if (*argP != NULL && strcmp(*argP, "mcroend") == 0)
+        {
+            macroFlag = FALSE; /* Done reading macro */
+        }
+        else
+        {
+            /* Add line to macro body */
             strcat(macroBody, macroLine);
             macroBodySize += strlen(macroLine);
         }
     }
 
-    /* Store completed macro in macro table */
+    /* Save macro in table */
     insertMacro((*context).macroTable, macroLabel, macroBody);
 
-    /* Cleanup allocated memory */
+    /* Free memory */
     free(macroLabel);
     free(macroBody);
 
-    return 1;
+    return TRUE;
 }
 
 /*
  * Add Content to Buffer
  *
- * Appends text to the content buffer. Buffer expansion is handled
- * externally by the calling function.
- *
- * Parameters:
- *   amContent       - Pointer to content buffer
- *   contentCapacity - Pointer to buffer capacity (unused but kept for consistency)
- *   text            - Text to append to buffer
- *
- * Returns:
- *   1 on success, 0 on failure
+ * Adds text to buffer
  */
-int addToContent(char **amContent, size_t *contentCapacity, const char *text) {
-    /* Append text to buffer (capacity managed by caller) */
-    strcat(*amContent, text);
-    return 1;
+int addToContent(char **amContentP, size_t *contentCapacityP, const char *text, int lineNum)
+{
+    /* Make buffer bigger */
+    size_t newCapacity = *contentCapacityP + LINE_SIZE;
+    char *newContent = (char *)malloc(newCapacity);
+
+    if (newContent == NULL)
+    {
+        fprintf(stderr, "Error at line %d: failed to allocate memory\n", lineNum);
+        return MEMORY_ALLOCATION_ERROR;
+    }
+
+    *amContentP = newContent;
+    strcat(newContent, text);
+    *contentCapacityP = newCapacity;
+
+    return TRUE;
 }
 
 /*
  * Create Output File
  *
- * Creates the .am output file by extracting the prefix from the source
- * filename and writing the processed content.
- *
- * Parameters:
- *   srcFileName - Original source filename
- *   amContent   - Processed content to write
- *
- * Returns:
- *   1 on success, 0 on failure
+ * Creates .am file with processed content
  */
-int createOutputFile(const char *srcFileName, const char *amContent) {
+int createOutputFile(const char *fileName, const char *amContent)
+{
     FILE *amFile;
-    char *prefix;
     char *amFileName;
-    char *dotPosition;
 
-    /* Find last dot in filename to separate name from extension */
-    dotPosition = strrchr(srcFileName, '.');
-
-    if (dotPosition != NULL) {
-        /* Extract filename prefix (before the dot) */
-        size_t prefixLen = dotPosition - srcFileName;
-        prefix = malloc(prefixLen + 1);
-        if (prefix == NULL) {
-            fprintf(stderr,
-                    "Error: Memory allocation failed for filename prefix\n");
-            return 0;
-        }
-        strncpy(prefix, srcFileName, prefixLen);
-        prefix[prefixLen] = '\0';
-    } else {
-        /* No extension - use entire filename as prefix */
-        prefix = malloc(strlen(srcFileName) + 1);
-        if (prefix == NULL) {
-            fprintf(stderr,
-                    "Error: Memory allocation failed for filename prefix\n");
-            return 0;
-        }
-        strcpy(prefix, srcFileName);
+    amFileName = malloc(strlen(fileName) + 4); /* +4 for ".am\0" */
+    if (amFileName == NULL)
+    {
+        fprintf(stderr, "Error: failed to allocate memory\n");
+        return MEMORY_ALLOCATION_ERROR;
     }
 
-    /* Create output filename with .am extension */
-    amFileName =
-        malloc(strlen(prefix) + 4); /* +3 for ".am" +1 for null terminator */
-    if (amFileName == NULL) {
-        fprintf(stderr,
-                "Error: Memory allocation failed for output filename\n");
-        free(prefix);
-        return 0;
-    }
-    sprintf(amFileName, "%s.am", prefix);
+    strcpy(amFileName, fileName);
+    strcat(amFileName, ".am"); /* Make filename.am */
 
-    /* Create and write to output file */
     amFile = fopen(amFileName, "w");
-    if (amFile == NULL) {
-        fprintf(stderr, "Error: Cannot create output file '%s'\n", amFileName);
-        return 0;
-    } else {
-        if (fputs(amContent, amFile) == EOF) {
-            fprintf(stderr, "Error: Failed to write to output file '%s'\n",
-                    amFileName);
-            return 0;
-        }
-        fclose(amFile);
+    if (amFile == NULL)
+    {
+        fprintf(stderr, "Error: cannot open file '%s'\n", amFileName);
+        free(amFileName);
+        return FALSE;
     }
 
-    /* Cleanup allocated memory */
-    free(prefix);
+    /* Write content to file */
+    fputs(amContent, amFile);
+    fclose(amFile);
+
+    /* Free filename */
     free(amFileName);
 
-    return 1;
+    return TRUE;
 }
 
 /*
  * Validate Macro Label
  *
- * Checks if a proposed macro name is valid by ensuring it doesn't
- * conflict with operations, directives, or registers, and meets
- * length requirements.
- *
- * Parameters:
- *   arg     - Proposed macro name to validate
- *   context - Assembler context containing operation, directive, and register tables
- *
- * Returns:
- *   TRUE if valid, FALSE if invalid
+ * Checks if macro name is valid (not reserved word, not too long)
  */
-int isValidMacroLabel(char *arg, assemblerContext *context) {
+int isValidMacroLabel(char *arg, assemblerContext *context)
+{
     return ((searchOperation(*(context->operationTable), arg) == NULL) &&
             (searchDirective(*(context->directiveTable), arg) == NULL) &&
             (searchRegister(*(context->registers), arg) == NULL) &&

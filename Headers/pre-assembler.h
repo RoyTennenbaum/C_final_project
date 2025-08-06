@@ -13,13 +13,14 @@ enum states
     MACRO_SPREAD,
     MACRO_DEFINE,
     NORMAL_LINE
-};
+} lineType;
 
 /* Function declarations */
-int preAssembler(char *srcFileName, assemblerContext *context);
-int handleMacroSpread(macro *tempMacro, char *firstArg, char **amContent, size_t *contentCapacity);
-int handleMacroDefinition(char *firstArg, assemblerContext *context, FILE *srcFile, int *lineNum);
-int addToContent(char **amContent, size_t *contentCapacity, const char *text);
-int createOutputFile(const char *srcFileName, const char *amContent);
+int preAssembler(char *fileName, assemblerContext *context);
+int handleEmptyLine(char **amContent, size_t *contentCapacity, int lineNum);
+int handleMacroSpread(macro *tempMacro, char **argP, char **amContent, size_t *contentCapacity, int lineNum);
+int handleMacroDefinition(char **argP, assemblerContext *context, FILE *srcFile, int *lineNumP);
+int addToContent(char **amContentP, size_t *contentCapacityP, const char *text, int lineNum);
+int createOutputFile(const char *fileName, const char *amContent);
 int isValidMacroLabel(char *arg, assemblerContext *context);
 #endif
