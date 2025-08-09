@@ -7,20 +7,21 @@
 int firstIteration(char *fileName, assemblerContext *context, int *pICF,
                    int *pDCF) {
     int IC = 0, DC = 0, lineNum = 0, errorFlag = 0;
-    char line[LINE_SIZE], *arg, *newSymbolName;
+    char line[LINE_SIZE], *arg, *newSymbolName, *colonPos;
     const directive *dir;
     const operation *op;
 
     FILE *fp = fopen(fileName, "r");
     if (fp == NULL) {
         errorFlag = 1;
-        printf("Error: file could not be opened.");
+        printf("Error: file '%s' could not be opened.", fileName);
         return 1;
     }
 
     while (fgets(line, LINE_SIZE, fp) != NULL) {
         lineNum++;
         newSymbolName = NULL;
+
         /* Get the first word in the line */
         arg = strtok(line, " \t");
 
@@ -30,9 +31,14 @@ int firstIteration(char *fileName, assemblerContext *context, int *pICF,
         }
 
         if (isNewSymbol(context, arg)) {
+            /* replace the colon in the symbol with '\0' */
+            colonPos = strchr(arg, ':');
+            *colonPos = '\0';
             newSymbolName = arg;
+
             /* Store the next word of the current line in arg */
             arg = strtok(NULL, " \t");
+
             /* Check if symbol is followed by a directive or an instruction */
             if (arg == NULL) {
                 errorFlag = 1;
