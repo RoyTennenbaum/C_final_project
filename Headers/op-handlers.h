@@ -21,10 +21,14 @@ void handleOneOperandOp(const operation *op, const char *operand1,
                         assemblerContext *context);
 void handleNoOperandOp(const operation *op, assemblerContext *context);
 
-opFirstWord encodeOpFirstWord(const operation *op, const char *operand1,
-                              const char *operand2, unsigned int *pMethod1,
-                              unsigned int *pMethod2,
-                              assemblerContext *context);
+void encodeOpFirstWord(const operation *op, const char *operand1,
+                       const char *operand2, unsigned int *pMethod1,
+                       unsigned int *pMethod2, int *L,
+                       assemblerContext *context);
+void encodeTwoRegisters(const char *operand1, const char *operand2, int *L,
+                        assemblerContext *context);
+void encodeOperand(const char *operand, unsigned int method, int *L,
+                   assemblerContext *context);
 
 unsigned int findAddressMethod(assemblerContext *context, const char *operand);
 int isImmediateAddressing(const char *operand);
