@@ -2,10 +2,7 @@
 #define DIR_HANDLERS_H
 
 #include "main.h"
-
-typedef struct {
-    unsigned int data_bits : 10;
-} directiveWord;
+#include "word-types.h"
 
 void handleDirective(assemblerContext *context, const directive *dir, int *DC,
                      char *symbolName);

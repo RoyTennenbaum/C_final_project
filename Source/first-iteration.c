@@ -7,6 +7,7 @@
 int firstIteration(char *fileName, assemblerContext *context, int *pICF,
                    int *pDCF) {
     int IC = 0, DC = 0, lineNum = 0, errorFlag = 0;
+    codeImage dirList = NULL, opList = NULL, fullCodeImage;
     char line[LINE_SIZE], *arg, *newSymbolName, *colonPos;
     const directive *dir;
     const operation *op;
@@ -14,16 +15,18 @@ int firstIteration(char *fileName, assemblerContext *context, int *pICF,
     FILE *fp = fopen(fileName, "r");
     if (fp == NULL) {
         errorFlag = 1;
-        printf("Error: file '%s' could not be opened.", fileName);
+        printf("Error: file '%s' could not be opened.\n", fileName);
         return 1;
     }
 
     while (fgets(line, LINE_SIZE, fp) != NULL) {
         lineNum++;
+        printf("\nLINE #%d\n", lineNum);
         newSymbolName = NULL;
 
         /* Get the first word in the line */
         arg = strtok(line, " \t");
+        printf("The first word is: '%s'\n", arg);
 
         /* Skip comment lines and empty lines */
         if (line[0] == ';' || arg == NULL) {
@@ -38,12 +41,13 @@ int firstIteration(char *fileName, assemblerContext *context, int *pICF,
 
             /* Store the next word of the current line in arg */
             arg = strtok(NULL, " \t");
+            printf("First word was a symbol. Second word is: '%s'\n", arg);
 
             /* Check if symbol is followed by a directive or an instruction */
             if (arg == NULL) {
                 errorFlag = 1;
                 printf("ERROR: symbol is not followed by a directive or "
-                       "an instruction.");
+                       "an instruction.\n");
                 continue;
             }
         }

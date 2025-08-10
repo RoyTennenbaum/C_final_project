@@ -6,15 +6,18 @@
 
 void handleOperation(assemblerContext *context, const operation *op, int *IC,
                      char *symbolName) {
-    char *operand1 = strtok(NULL, ", \t");
-    char *operand2 = strtok(NULL, " \t");
+    char *operand1, *operand2;
+    operand1 = strtok(NULL, ", \t\n");
+    printf("First operand is: '%s' \n", operand1);
+    operand2 = strtok(NULL, ", \t\n");
+    printf("Second operand is: '%s' \n", operand2);
 
     if (symbolName != NULL) {
         insertSymbol((*context).symbolTable, symbolName, *IC, TYPE_CODE);
     }
 
     if (strtok(NULL, " \t") != NULL) {
-        printf("ERROR: Too many operands");
+        printf("ERROR: Too many operands\n");
         return;
     }
 
@@ -25,7 +28,7 @@ void handleOperation(assemblerContext *context, const operation *op, int *IC,
     case SUB:
     case LEA:
         if (operand1 == NULL || operand2 == NULL)
-            printf("ERROR: Missing operands");
+            printf("ERROR: Missing operands\n");
         handleTwoOperandOp(op, operand1, operand2, context);
         break;
 
@@ -39,7 +42,7 @@ void handleOperation(assemblerContext *context, const operation *op, int *IC,
     case PRN:
     case JSR:
         if (operand1 == NULL)
-            printf("ERROR: Missing operand");
+            printf("ERROR: Missing operand\n");
         handleOneOperandOp(op, operand1, context);
         break;
 
@@ -55,7 +58,7 @@ void handleOperation(assemblerContext *context, const operation *op, int *IC,
 
 void handleTwoOperandOp(const operation *op, const char *operand1,
                         const char *operand2, assemblerContext *context) {
-    unsigned int method1, method2;
+    addressingType method1, method2;
     int L = 0;
 
     encodeOpFirstWord(op, operand1, operand2, &method1, &method2, &L, context);
@@ -92,29 +95,32 @@ void handleNoOperandOp(const operation *op, assemblerContext *context) {
 }
 
 void encodeOpFirstWord(const operation *op, const char *operand1,
-                       const char *operand2, unsigned int *pMethod1,
-                       unsigned int *pMethod2, int *L,
+                       const char *operand2, addressingType *pMethod1,
+                       addressingType *pMethod2, int *L,
                        assemblerContext *context) {
     opFirstWord word;
 
     word.opcode_bits = (*op).number;
 
     if (operand1 && operand2) {
-        *pMethod1 = findAddressMethod(context, operand1);
-        *pMethod2 = findAddressMethod(context, operand2);
+        *pMethod1 = getExpectedAddressMethod(context, operand1);
+        printf("method1: %d\n", *pMethod1);
+        *pMethod2 = getExpectedAddressMethod(context, operand2);
+        printf("method2: %d\n", *pMethod2);
 
         if (*pMethod1 == INVALID || *pMethod2 == INVALID) {
-            printf("ERROR: Invalid addressing method");
+            printf("ERROR: Invalid addressing method/s\n");
         }
 
         word.src_op_bits = *pMethod1;
         word.dest_op_bits = *pMethod2;
     } else if (operand1) {
         *pMethod1 = 0;
-        *pMethod2 = findAddressMethod(context, operand1);
+        *pMethod2 = getExpectedAddressMethod(context, operand1);
+        printf("method2: %d\n", *pMethod2);
 
         if (*pMethod2 == INVALID)
-            printf("ERROR: Invalid addressing method");
+            printf("ERROR: Invalid addressing method\n");
 
         /* If only one operand, it's the destination operand */
         word.src_op_bits = 0;
@@ -132,15 +138,19 @@ void encodeTwoRegisters(const char *operand1, const char *operand2, int *L,
     registerPairWord word;
     const registerInfo *reg1, *reg2;
 
-    reg1 = searchRegister(*(*context).registers, operand1);
-    reg2 = searchRegister(*(*context).registers, operand2);
-    word.reg1_bits = (*reg1).number;
-    word.reg2_bits = (*reg2).number;
+    if (operand1) {
+        reg1 = searchRegister(*(*context).registers, operand1);
+        word.reg1_bits = (*reg1).number;
+    }
+    if (operand2) {
+        reg2 = searchRegister(*(*context).registers, operand2);
+        word.reg2_bits = (*reg2).number;
+    }
     /*insertLineData(..., word);*/
     L++;
 }
 
-void encodeOperand(const char *operand, unsigned int method, int *L,
+void encodeOperand(const char *operand, addressingType method, int *L,
                    assemblerContext *context) {
     if (method == IMMEDIATE) {
         PayloadWord word;
@@ -150,7 +160,7 @@ void encodeOperand(const char *operand, unsigned int method, int *L,
 
         /* Check valid signed 8-bit range */
         if (num < -128 || num > 127) {
-            printf("ERROR: number out of range");
+            printf("ERROR: number out of range\n");
         } else {
             /* convert to unsigned using 2's complement */
             word.payload_bits = (unsigned int)(num & 0xFF);
@@ -172,7 +182,7 @@ void encodeOperand(const char *operand, unsigned int method, int *L,
 
         /* FailSafe for length */
         if (len < 8) {
-            printf("ERROR: Illegal length for matrix addressing");
+            printf("ERROR: Illegal length for matrix addressing\n");
             return;
         }
 
@@ -186,7 +196,7 @@ void encodeOperand(const char *operand, unsigned int method, int *L,
 
         if (searchRegister(*(*context).registers, reg1Str) == NULL ||
             searchRegister(*(*context).registers, reg2Str) == NULL) {
-            printf("ERROR: Invalid row and column registers");
+            printf("ERROR: Invalid row and column registers\n");
             return;
         }
 
@@ -194,20 +204,21 @@ void encodeOperand(const char *operand, unsigned int method, int *L,
     }
 }
 
-unsigned int findAddressMethod(assemblerContext *context, const char *operand) {
-    if (isImmediateAddressing(operand))
+addressingType getExpectedAddressMethod(assemblerContext *context,
+                                        const char *operand) {
+    if (isImmediateAddressExpected(operand))
         return IMMEDIATE;
-    else if (isDirectAddressing(*(*context).symbolTable, operand))
-        return DIRECT;
-    else if (isMatrixAddressing(*(*context).registers, operand))
-        return MATRIX;
-    else if (isRegisterAddressing(*(*context).registers, operand))
+    else if (isRegisterAddressExpected(*(*context).registers, operand))
         return REGISTER;
+    else if (isMatrixAddressExpected(*(*context).registers, operand))
+        return MATRIX;
+    else if (isDirectAddressExpected(*(*context).symbolTable, operand))
+        return DIRECT;
     else
         return INVALID;
 }
 
-int isImmediateAddressing(const char *operand) {
+int isImmediateAddressExpected(const char *operand) {
     int i;
     size_t len = strlen(operand);
 
@@ -221,14 +232,14 @@ int isImmediateAddressing(const char *operand) {
     return TRUE;
 }
 
-int isDirectAddressing(symbolTable sHead, const char *operand) {
-    symbol *op = searchSymbol(sHead, operand);
-    if (op == NULL || ((*op).type != TYPE_DATA && (*op).type != TYPE_EXTERNAL))
+int isDirectAddressExpected(symbolTable sHead, const char *operand) {
+    size_t len = strlen(operand);
+    if (len > 30 || !isalpha(operand[0]))
         return FALSE;
     return TRUE;
 }
 
-int isMatrixAddressing(const registers regs, const char *operand) {
+int isMatrixAddressExpected(const registers regs, const char *operand) {
     size_t len = strlen(operand);
     char reg1[3], reg2[3];
     int labelBuf = LINE_SIZE - len;
@@ -263,7 +274,7 @@ int isMatrixAddressing(const registers regs, const char *operand) {
     return TRUE;
 }
 
-int isRegisterAddressing(const registers regs, const char *operand) {
+int isRegisterAddressExpected(const registers regs, const char *operand) {
     if (searchRegister(regs, operand) == NULL)
         return FALSE;
     return TRUE;

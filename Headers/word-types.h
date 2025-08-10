@@ -1,8 +1,12 @@
-#ifndef OP_WORD_TYPES_H
-#define OP_WORD_TYPES_H
+#ifndef WORD_TYPES_H
+#define WORD_TYPES_H
 
 /* 10-bit word that is handled only in the second iteration */
 #define NO_WORD_YET "??????????"
+
+typedef struct {
+    unsigned int data_bits : 10;
+} directiveWord;
 
 /* Format of the first word of an operation sentence */
 typedef struct {
@@ -33,5 +37,12 @@ typedef struct {
     unsigned int reg1_bits : 3;
     unsigned int more_padding : 1;
 } registerPairWord;
+
+typedef union {
+    directiveWord dir;
+    opFirstWord first;
+    PayloadWord payload;
+    registerPairWord regPair;
+} WordType;
 
 #endif

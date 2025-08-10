@@ -2,6 +2,7 @@
 #define DYNAMIC_TABLES_H
 
 #include "global.h"
+#include "word-types.h"
 
 /* Properties to differentiate between different symbol categories */
 typedef enum { TYPE_EXTERNAL, TYPE_DATA, TYPE_CODE } symbolType;
@@ -21,18 +22,18 @@ typedef struct macro_node {
     struct macro_node *next;
 } macro;
 
-typedef struct line_data_node {
-    int IC;
+typedef struct binary_word_node {
+    WordType binaryWord;
+    int address; /* IC or DC */
     int L;
-    char *binarySentence;
-    struct line_data_node *next;
-} lineData;
+    struct binary_word_node *next;
+} binaryWordNode;
 
 /* Linked list definitions */
 typedef symbol *symbolTable;
 typedef macro *macroTable;
 /* codeImage contains the binary representation of a file after the first iteration */
-typedef lineData *codeImage;
+typedef binaryWordNode *codeImage;
 
 /* Function prototypes */
 void insertSymbol(symbolTable *sHeadP, char *label, int address,
@@ -42,6 +43,6 @@ void displaySymbol(symbolTable sHead); /* for debugging */
 void insertMacro(macroTable *mHeadP, char *label, char *body);
 macro *searchMacro(macroTable mHead, char *label);
 void displayMacro(macroTable mHead); /* for debugging */
-void insertLineData(codeImage *lHeadP, int IC, char *binaryWord);
+void insertBinaryWord(codeImage *lHeadP, int address, int L, char *binaryWord);
 
 #endif

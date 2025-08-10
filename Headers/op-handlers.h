@@ -2,7 +2,7 @@
 #define OP_HANDLERS_H
 
 #include "main.h"
-#include "op-word-types.h"
+#include "word-types.h"
 
 typedef enum {
     IMMEDIATE = 0,
@@ -22,18 +22,19 @@ void handleOneOperandOp(const operation *op, const char *operand1,
 void handleNoOperandOp(const operation *op, assemblerContext *context);
 
 void encodeOpFirstWord(const operation *op, const char *operand1,
-                       const char *operand2, unsigned int *pMethod1,
-                       unsigned int *pMethod2, int *L,
+                       const char *operand2, addressingType *pMethod1,
+                       addressingType *pMethod2, int *L,
                        assemblerContext *context);
 void encodeTwoRegisters(const char *operand1, const char *operand2, int *L,
                         assemblerContext *context);
-void encodeOperand(const char *operand, unsigned int method, int *L,
+void encodeOperand(const char *operand, addressingType method, int *L,
                    assemblerContext *context);
 
-unsigned int findAddressMethod(assemblerContext *context, const char *operand);
-int isImmediateAddressing(const char *operand);
-int isDirectAddressing(symbolTable sHead, const char *operand);
-int isMatrixAddressing(const registers regs, const char *operand);
-int isRegisterAddressing(const registers regs, const char *operand);
+addressingType getExpectedAddressMethod(assemblerContext *context,
+                                        const char *operand);
+int isImmediateAddressExpected(const char *operand);
+int isDirectAddressExpected(symbolTable sHead, const char *operand);
+int isMatrixAddressExpected(const registers regs, const char *operand);
+int isRegisterAddressExpected(const registers regs, const char *operand);
 
 #endif
