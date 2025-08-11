@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
         {"mov", MOV}, {"cmp", CMP}, {"add", ADD}, {"sub", SUB},
         {"not", NOT}, {"clr", CLR}, {"lea", LEA}, {"inc", INC},
         {"dec", DEC}, {"jmp", JMP}, {"bne", BNE}, {"red", RED},
-        {"prn", PRN}, {"jsr", JSR}, {"rts", RTS}, {"stp", STP}};
+        {"prn", PRN}, {"jsr", JSR}, {"rts", RTS}, {"stop", STP}};
     static const directiveTable dirTable = {{".data", DATA},
                                             {".string", STRING},
                                             {".mat", MAT},

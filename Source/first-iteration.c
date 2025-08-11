@@ -6,7 +6,8 @@
 
 int firstIteration(char *fileName, int *pICF, int *pDCF,
                    binaryWordList *codeImage, assemblerContext *context) {
-    int IC = 100, DC = 0, lineNum = 0, errorFlag = 0;
+    int IC = 0, DC = 0, lineNum = 0, errorFlag = 0;
+    binaryWordNode *dirPtr, *prevDirPtr, *opPtr;
     binaryWordList dirList = NULL, opList = NULL;
     char line[LINE_SIZE], *arg, *newSymbolName, *colonPos;
     const directive *dir;
@@ -68,7 +69,39 @@ int firstIteration(char *fileName, int *pICF, int *pDCF,
     }
 
     *pICF = IC;
-    *pDCF = DC;
+
+    /* Increase every directive word address by ICF, to separate data from instructions */
+    dirPtr = dirList;
+    while (dirPtr != NULL) {
+        (*dirPtr).address += (*pICF);
+        prevDirPtr = dirPtr;
+        dirPtr = (*dirPtr).next;
+    }
+
+    /* Store the last directive word address in DCF */
+    if (dirList != NULL) {
+        *pDCF = (*prevDirPtr).address + (*prevDirPtr).L;
+    } else {
+        *pDCF = 0;
+    }
+
+    /* append dirList to opList to get the full code image */
+    if (opList == NULL) {
+        /* If opList empty, codeImage contains only dirList */
+        *codeImage = dirList;
+    } else {
+        /* If opList not empty, point codeImage to opList */
+        *codeImage = opList;
+
+        /* Get last node of opList */
+        opPtr = opList;
+        while ((*opPtr).next != NULL) {
+            opPtr = (*opPtr).next;
+        }
+
+        /* Append dirList to the end of opList */
+        (*opPtr).next = dirList;
+    }
 
     adjustDataSymbolAddresses(*(*context).symbolTable, pICF);
 
