@@ -7,4 +7,6 @@
 void handleDirective(const directive *dir, int *DC, char *symbolName,
                      binaryWordList *dirList, assemblerContext *context);
 
+void encodeDataDir(const directive *dir, int *DC, binaryWordList *dirList,
+                   assemblerContext *context);
 #endif

@@ -188,11 +188,10 @@ void encodeOperand(const char *operand, addressingType method, int *L, int *IC,
         int num = atoi(operand + 1);
 
         /* Check valid signed 8-bit range */
-        if (num < -128 || num > 127) {
+        if (num < SIGNED_8_BIT_MIN || num > SIGNED_8_BIT_MAX) {
             printf("ERROR: number out of range\n");
         } else {
-            /* convert to unsigned using 2's complement */
-            word.payload.payload_bits = (unsigned int)(num & 0xFF);
+            word.payload.payload_bits = (unsigned int)(num);
 
             /* aer taken care of in second iteration. In first iteration we set them explicitly to zero */
             word.payload.aer_bits = 0;
@@ -257,8 +256,8 @@ addressingType getExpectedAddressMethod(assemblerContext *context,
 }
 
 int isImmediateAddressExpected(const char *operand) {
-    int i = 1;
-    size_t len = strlen(operand);
+    int i;
+    size_t len;
 
     if (!operand)
         return FALSE;
@@ -271,7 +270,7 @@ int isImmediateAddressExpected(const char *operand) {
         return FALSE;
 
     i = 1;
-    if (operand[i] == '-') /* allow minus sign */
+    if (operand[i] == '+' || operand[i] == '-') /* allow +/- signs */
         i++;
 
     if (i >= len) /* no digits after '#' or "#-" */
