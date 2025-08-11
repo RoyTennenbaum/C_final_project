@@ -257,16 +257,31 @@ addressingType getExpectedAddressMethod(assemblerContext *context,
 }
 
 int isImmediateAddressExpected(const char *operand) {
-    int i;
+    int i = 1;
     size_t len = strlen(operand);
 
+    if (!operand)
+        return FALSE;
     if (operand[0] != '#')
         return FALSE;
 
-    for (i = 1; i < len; i++) {
-        if (!isdigit(operand[i]))
+    len = strlen(operand);
+
+    if (len < 2) /* must have something after '#' */
+        return FALSE;
+
+    i = 1;
+    if (operand[i] == '-') /* allow minus sign */
+        i++;
+
+    if (i >= len) /* no digits after '#' or "#-" */
+        return FALSE;
+
+    for (; i < len; i++) {
+        if (!isdigit((unsigned char)operand[i]))
             return FALSE;
     }
+
     return TRUE;
 }
 
