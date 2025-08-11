@@ -78,7 +78,8 @@ void handleTwoOperandOp(const operation *op, const char *operand1,
         encodeOperand(operand2, method2, &L, IC, opList, context);
     }
 
-    IC += L;
+    /* increase IC by the number of machine code words the instruction occupies */
+    (*IC) += L;
 }
 
 void handleOneOperandOp(const operation *op, const char *operand1, int *IC,
@@ -90,7 +91,8 @@ void handleOneOperandOp(const operation *op, const char *operand1, int *IC,
                       context);
     encodeOperand(operand1, method, &L, IC, opList, context);
 
-    IC += L;
+    /* increase IC by the number of machine code words the instruction occupies */
+    (*IC) += L;
 }
 
 void handleNoOperandOp(const operation *op, int *IC, binaryWordList *opList,
@@ -101,17 +103,20 @@ void handleNoOperandOp(const operation *op, int *IC, binaryWordList *opList,
     encodeOpFirstWord(op, NULL, NULL, &dummyMethod1, &dummyMethod2, &L, IC,
                       opList, context);
 
-    IC += L;
+    /* increase IC by the number of machine code words the instruction occupies */
+    (*IC) += L;
 }
 
 void encodeOpFirstWord(const operation *op, const char *operand1,
                        const char *operand2, addressingType *pMethod1,
                        addressingType *pMethod2, int *L, int *IC,
                        binaryWordList *opList, assemblerContext *context) {
-    WordType wordType;
-    opFirstWord word;
+    WordType word;
 
-    word.opcode_bits = (*op).number;
+    /* Initialize the 'WordType' union with zeros */
+    memset(&word, 0, sizeof(word));
+
+    word.opFirst.opcode_bits = (*op).number;
 
     if (operand1 && operand2) {
         *pMethod1 = getExpectedAddressMethod(context, operand1);
@@ -123,8 +128,8 @@ void encodeOpFirstWord(const operation *op, const char *operand1,
             printf("ERROR: Invalid addressing method/s\n");
         }
 
-        word.src_op_bits = *pMethod1;
-        word.dest_op_bits = *pMethod2;
+        word.opFirst.src_op_bits = *pMethod1;
+        word.opFirst.dest_op_bits = *pMethod2;
     } else if (operand1) {
         *pMethod1 = 0;
         *pMethod2 = getExpectedAddressMethod(context, operand1);
@@ -134,80 +139,81 @@ void encodeOpFirstWord(const operation *op, const char *operand1,
             printf("ERROR: Invalid addressing method\n");
 
         /* If only one operand, it's the destination operand */
-        word.src_op_bits = 0;
-        word.dest_op_bits = *pMethod2;
+        word.opFirst.src_op_bits = 0;
+        word.opFirst.dest_op_bits = *pMethod2;
+
     } else {
         *pMethod1 = 0;
         *pMethod2 = 0;
     }
 
-    /* store the opFirstWord inside the wordType union */
-    wordType.opFirst = word;
+    /* aer taken care of in second iteration. In first iteration we set them explicitly to zero */
+    word.opFirst.aer_bits = 0;
 
-    insertBinaryWord(opList, *IC, *L, wordType);
+    insertBinaryWord(opList, *IC, *L, word);
     (*L)++;
 }
 
 void encodeTwoRegisters(const char *operand1, const char *operand2, int *L,
                         int *IC, binaryWordList *opList,
                         assemblerContext *context) {
-    WordType wordType;
-    registerPairWord word;
+    WordType word;
     const registerInfo *reg1, *reg2;
+
+    /* Initialize the 'WordType' union with zeros */
+    memset(&word, 0, sizeof(word));
 
     if (operand1) {
         reg1 = searchRegister(*(*context).registers, operand1);
-        word.reg1_bits = (*reg1).number;
+        word.regPair.reg1_bits = (*reg1).number;
     }
     if (operand2) {
         reg2 = searchRegister(*(*context).registers, operand2);
-        word.reg2_bits = (*reg2).number;
+        word.regPair.reg2_bits = (*reg2).number;
     }
 
-    /* store the registerPairWord inside the wordType union */
-    wordType.regPair = word;
-
-    insertBinaryWord(opList, *IC, *L, wordType);
+    insertBinaryWord(opList, *IC, *L, word);
     (*L)++;
 }
 
 void encodeOperand(const char *operand, addressingType method, int *L, int *IC,
                    binaryWordList *opList, assemblerContext *context) {
-    WordType wordType;
+    WordType word;
+
+    /* Initialize the 'WordType' union with zeros */
+    memset(&word, 0, sizeof(word));
 
     if (method == IMMEDIATE) {
-        PayloadWord word;
-
         /* Skip the first character '#' and convert the rest to int */
-        unsigned int num = atoi(operand + 1);
+        int num = atoi(operand + 1);
 
         /* Check valid signed 8-bit range */
         if (num < -128 || num > 127) {
             printf("ERROR: number out of range\n");
         } else {
             /* convert to unsigned using 2's complement */
-            word.payload_bits = (unsigned int)(num & 0xFF);
+            word.payload.payload_bits = (unsigned int)(num & 0xFF);
 
-            /* store the PayloadWord inside the wordType union */
-            wordType.payload = word;
+            /* aer taken care of in second iteration. In first iteration we set them explicitly to zero */
+            word.payload.aer_bits = 0;
 
-            insertBinaryWord(opList, *IC, *L, wordType);
+            insertBinaryWord(opList, *IC, *L, word);
             (*L)++;
         }
     } else if (method == DIRECT) {
-        PayloadWord word;
-        wordType.payload = word;
-        /* Symbol address is taken care of only in the second iteration, so we store an uninitialized payloadWord */
-        insertBinaryWord(opList, *IC, *L, wordType);
+        /* Symbol address is taken care of only in second iteration, so we store a zeroed payloadWord */
+        word.payload.payload_bits = 0;
+        word.payload.aer_bits = 0;
+        insertBinaryWord(opList, *IC, *L, word);
+        (*L)++;
     } else if (method == MATRIX) {
         char reg1Str[3], reg2Str[3];
         size_t len = strlen(operand);
 
-        PayloadWord word;
-        wordType.payload = word;
-
-        /* Mat symbol address is taken care of only in the second iteration, so we store an uninitialized payloadWord */
-        insertBinaryWord(opList, *IC, *L, wordType);
+        /* Mat symbol address is taken care of only in second iteration, so we store a zeroed payloadWord */
+        word.payload.payload_bits = 0;
+        word.payload.aer_bits = 0;
+        insertBinaryWord(opList, *IC, *L, word);
         (*L)++;
 
         /* Mat row and col values are known and encoded in the first iteration: */

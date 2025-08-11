@@ -6,7 +6,7 @@
 
 int firstIteration(char *fileName, int *pICF, int *pDCF,
                    binaryWordList *codeImage, assemblerContext *context) {
-    int IC = 0, DC = 0, lineNum = 0, errorFlag = 0;
+    int IC = 100, DC = 0, lineNum = 0, errorFlag = 0;
     binaryWordList dirList = NULL, opList = NULL;
     char line[LINE_SIZE], *arg, *newSymbolName, *colonPos;
     const directive *dir;

@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     for (i = 1; i < argc; i++) {
         /*preAssembler(argv[i], &context);*/
         firstIteration(argv[i], &ICF, &DCF, &codeImage, &context);
-        secondIteration(argv[i], &context, ICF, DCF);
+        /*secondIteration(argv[i], &context, ICF, DCF);*/
     }
 
     return 0;
