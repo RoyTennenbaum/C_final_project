@@ -4,7 +4,7 @@
 #include "main.h"
 #include "word-types.h"
 
-void handleDirective(assemblerContext *context, const directive *dir, int *DC,
-                     char *symbolName);
+void handleDirective(const directive *dir, int *DC, char *symbolName,
+                     binaryWordList *dirList, assemblerContext *context);
 
 #endif

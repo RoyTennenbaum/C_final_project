@@ -4,6 +4,7 @@
 int main(int argc, char *argv[]) {
     symbolTable symbolTableHead = NULL;
     macroTable macroTableHead = NULL;
+
     static const operationTable opTable = {
         {"mov", MOV}, {"cmp", CMP}, {"add", ADD}, {"sub", SUB},
         {"not", NOT}, {"clr", CLR}, {"lea", LEA}, {"inc", INC},
@@ -18,8 +19,9 @@ int main(int argc, char *argv[]) {
                                    {"r4", 4}, {"r5", 5}, {"r6", 6}, {"r7", 7}};
 
     assemblerContext context;
-    int i;
+    binaryWordList codeImage;
     static int ICF, DCF;
+    int i;
 
     context.symbolTable = &symbolTableHead;
     context.macroTable = &macroTableHead;
@@ -28,8 +30,8 @@ int main(int argc, char *argv[]) {
     context.registers = &regs;
 
     for (i = 1; i < argc; i++) {
-        preAssembler(argv[i], &context);
-        firstIteration(argv[i], &context, &ICF, &DCF);
+        /*preAssembler(argv[i], &context);*/
+        firstIteration(argv[i], &ICF, &DCF, &codeImage, &context);
         secondIteration(argv[i], &context, ICF, DCF);
     }
 

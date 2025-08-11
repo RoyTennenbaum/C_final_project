@@ -25,15 +25,15 @@ typedef struct macro_node {
 typedef struct binary_word_node {
     WordType binaryWord;
     int address; /* IC or DC */
-    int L;
+    int L; /* word count index in the same line as the address's */
     struct binary_word_node *next;
 } binaryWordNode;
 
 /* Linked list definitions */
 typedef symbol *symbolTable;
 typedef macro *macroTable;
-/* codeImage contains the binary representation of a file after the first iteration */
-typedef binaryWordNode *codeImage;
+/* binaryWordList contains the binary representation of a file after the first iteration */
+typedef binaryWordNode *binaryWordList;
 
 /* Function prototypes */
 void insertSymbol(symbolTable *sHeadP, char *label, int address,
@@ -43,6 +43,6 @@ void displaySymbol(symbolTable sHead); /* for debugging */
 void insertMacro(macroTable *mHeadP, char *label, char *body);
 macro *searchMacro(macroTable mHead, char *label);
 void displayMacro(macroTable mHead); /* for debugging */
-void insertBinaryWord(codeImage *lHeadP, int address, int L, char *binaryWord);
+void insertBinaryWord(binaryWordList *headP, int address, int L, WordType word);
 
 #endif

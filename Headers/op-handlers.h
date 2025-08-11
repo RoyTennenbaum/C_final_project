@@ -12,23 +12,26 @@ typedef enum {
     INVALID
 } addressingType;
 
-void handleOperation(assemblerContext *context, const operation *op, int *IC,
-                     char *symbolName);
+void handleOperation(const operation *op, int *IC, char *symbolName,
+                     binaryWordList *opList, assemblerContext *context);
 
 void handleTwoOperandOp(const operation *op, const char *operand1,
-                        const char *operand2, assemblerContext *context);
-void handleOneOperandOp(const operation *op, const char *operand1,
+                        const char *operand2, int *IC, binaryWordList *opList,
                         assemblerContext *context);
-void handleNoOperandOp(const operation *op, assemblerContext *context);
+void handleOneOperandOp(const operation *op, const char *operand1, int *IC,
+                        binaryWordList *opList, assemblerContext *context);
+void handleNoOperandOp(const operation *op, int *IC, binaryWordList *opList,
+                       assemblerContext *context);
 
 void encodeOpFirstWord(const operation *op, const char *operand1,
                        const char *operand2, addressingType *pMethod1,
-                       addressingType *pMethod2, int *L,
-                       assemblerContext *context);
+                       addressingType *pMethod2, int *L, int *IC,
+                       binaryWordList *opList, assemblerContext *context);
 void encodeTwoRegisters(const char *operand1, const char *operand2, int *L,
+                        int *IC, binaryWordList *opList,
                         assemblerContext *context);
-void encodeOperand(const char *operand, addressingType method, int *L,
-                   assemblerContext *context);
+void encodeOperand(const char *operand, addressingType method, int *L, int *IC,
+                   binaryWordList *opList, assemblerContext *context);
 
 addressingType getExpectedAddressMethod(assemblerContext *context,
                                         const char *operand);

@@ -157,59 +157,43 @@ void displayMacro(macroTable mHead) {
     }
 }
 
-void insertBinaryWord(codeImage *lHeadP, int address, int L, char *binaryWord) {
-    // lineData *ptr = *lHeadP;
-    // lineData *prev = NULL;
+void insertBinaryWord(binaryWordList *headP, int address, int L,
+                      WordType word) {
+    binaryWordNode *ptr = *headP;
+    binaryWordNode *prev = NULL;
+    binaryWordNode *newNode;
 
-    // /* Search for existing node with same IC */
-    // while (ptr != NULL) {
-    //     if ((*ptr).IC == IC) {
-    //         break;
-    //     }
-    //     prev = ptr;
-    //     ptr = (*ptr).next;
-    // }
+    /* Traverse the list to the latest node */
+    while (ptr != NULL) {
+        prev = ptr;
+        ptr = (*ptr).next;
+    }
 
-    // if (ptr != NULL) {
-    //     /* Node for this IC already exists, append to binarySentence */
-    //     size_t oldLength = strlen((*ptr).binarySentence) + 1;
-    //     size_t newLength = oldLength + strlen(binaryWord) + 1;
-    //     char *newBuffer = realloc((*ptr).binarySentence, newLength);
-    //     if (newBuffer == NULL) {
-    //         printf("Realloc failed while appending binary word.\n");
-    //         return;
-    //     }
-    //     (*ptr).binarySentence = newBuffer;
-    //     strcat((*ptr).binarySentence, binaryWord);
-    //     (*ptr).L += 1;
-    // } else {
-    //     /* No existing node for this IC, create new one */
+    /* No existing node for this address, create new one */
 
-    //     /* Allocate memory for new node in the list */
-    //     lineData *newLineData = (lineData *)malloc(sizeof(lineData));
-    //     /* Check if memory allocation was successful */
-    //     if (newLineData == NULL) {
-    //         printf("Memory allocation for lineData failed!\n");
-    //         return;
-    //     }
+    /* Allocate memory for new node in the list */
+    newNode = malloc(sizeof(*newNode));
+    /* Check if memory allocation was successful */
+    if (!newNode) {
+        printf("Memory allocation for binaryWordNode failed!\n");
+        return;
+    }
 
-    //     /* Insert all node data in the allocated space */
-    //     (*newLineData).IC = IC;
-    //     (*newLineData).L = 1; /* First word in the line */
-    //     (*newLineData).binarySentence = malloc(strlen(binaryWord) + 1);
-    //     if ((*newLineData).binarySentence == NULL) {
-    //         printf("Memory allocation for binarySentence failed.\n");
-    //         free(newLineData);
-    //         return;
-    //     }
-    //     strcpy((*newLineData).binarySentence, binaryWord);
-    //     (*newLineData).next = NULL;
+    /* Insert all node data in the allocated space */
+    (*newNode).binaryWord = word;
+    (*newNode).address = address;
+    (*newNode).L = L;
+    (*newNode).next = NULL;
 
-    //     /* Append to end of list */
-    //     if (*lHeadP == NULL) {
-    //         *lHeadP = newLineData;
-    //     } else {
-    //         (*prev).next = newLineData;
-    //     }
-    // }
+    /* Append to end of list */
+    if (*headP == NULL) {
+        *headP = newNode;
+    } else {
+        (*prev).next = newNode;
+    }
+
+    /* for debugging */
+    printf("Item inserted: word=%u, address=%d, L=%d\n",
+           *(unsigned int *)&(*newNode).binaryWord, (*newNode).address,
+           (*newNode).L);
 }

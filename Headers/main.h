@@ -15,8 +15,8 @@ typedef struct {
 } assemblerContext;
 
 int preAssembler(char *srcFileName, assemblerContext *context);
-int firstIteration(char *fileName, assemblerContext *context, int *ICF,
-                   int *DCF);
+int firstIteration(char *fileName, int *pICF, int *pDCF,
+                   binaryWordList *codeImage, assemblerContext *context);
 int secondIteration(char *fileName, assemblerContext *context, int ICF,
                     int DCF);
 

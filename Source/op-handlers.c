@@ -4,8 +4,8 @@
 #include <ctype.h>
 #include "../Headers/op-handlers.h"
 
-void handleOperation(assemblerContext *context, const operation *op, int *IC,
-                     char *symbolName) {
+void handleOperation(const operation *op, int *IC, char *symbolName,
+                     binaryWordList *opList, assemblerContext *context) {
     char *operand1, *operand2;
     operand1 = strtok(NULL, ", \t\n");
     printf("First operand is: '%s' \n", operand1);
@@ -29,7 +29,7 @@ void handleOperation(assemblerContext *context, const operation *op, int *IC,
     case LEA:
         if (operand1 == NULL || operand2 == NULL)
             printf("ERROR: Missing operands\n");
-        handleTwoOperandOp(op, operand1, operand2, context);
+        handleTwoOperandOp(op, operand1, operand2, IC, opList, context);
         break;
 
     case NOT:
@@ -43,12 +43,12 @@ void handleOperation(assemblerContext *context, const operation *op, int *IC,
     case JSR:
         if (operand1 == NULL)
             printf("ERROR: Missing operand\n");
-        handleOneOperandOp(op, operand1, context);
+        handleOneOperandOp(op, operand1, IC, opList, context);
         break;
 
     case RTS:
     case STP:
-        handleNoOperandOp(op, context);
+        handleNoOperandOp(op, IC, opList, context);
         break;
 
     default:
@@ -57,47 +57,58 @@ void handleOperation(assemblerContext *context, const operation *op, int *IC,
 }
 
 void handleTwoOperandOp(const operation *op, const char *operand1,
-                        const char *operand2, assemblerContext *context) {
+                        const char *operand2, int *IC, binaryWordList *opList,
+                        assemblerContext *context) {
     addressingType method1, method2;
     int L = 0;
 
-    encodeOpFirstWord(op, operand1, operand2, &method1, &method2, &L, context);
+    encodeOpFirstWord(op, operand1, operand2, &method1, &method2, &L, IC,
+                      opList, context);
 
     if (method1 == REGISTER && method2 == REGISTER) {
-        encodeTwoRegisters(operand1, operand2, &L, context);
+        encodeTwoRegisters(operand1, operand2, &L, IC, opList, context);
     } else if (method1 == REGISTER) {
-        encodeTwoRegisters(operand1, NULL, &L, context);
-        encodeOperand(operand2, method2, &L, context);
+        encodeTwoRegisters(operand1, NULL, &L, IC, opList, context);
+        encodeOperand(operand2, method2, &L, IC, opList, context);
     } else if (method2 == REGISTER) {
-        encodeOperand(operand1, method1, &L, context);
-        encodeTwoRegisters(NULL, operand2, &L, context);
+        encodeOperand(operand1, method1, &L, IC, opList, context);
+        encodeTwoRegisters(NULL, operand2, &L, IC, opList, context);
     } else {
-        encodeOperand(operand1, method1, &L, context);
-        encodeOperand(operand2, method2, &L, context);
+        encodeOperand(operand1, method1, &L, IC, opList, context);
+        encodeOperand(operand2, method2, &L, IC, opList, context);
     }
+
+    IC += L;
 }
 
-void handleOneOperandOp(const operation *op, const char *operand1,
-                        assemblerContext *context) {
+void handleOneOperandOp(const operation *op, const char *operand1, int *IC,
+                        binaryWordList *opList, assemblerContext *context) {
     unsigned int dummyMethod, method;
     int L = 0;
 
-    encodeOpFirstWord(op, operand1, NULL, &dummyMethod, &method, &L, context);
-    encodeOperand(operand1, method, &L, context);
+    encodeOpFirstWord(op, operand1, NULL, &dummyMethod, &method, &L, IC, opList,
+                      context);
+    encodeOperand(operand1, method, &L, IC, opList, context);
+
+    IC += L;
 }
 
-void handleNoOperandOp(const operation *op, assemblerContext *context) {
+void handleNoOperandOp(const operation *op, int *IC, binaryWordList *opList,
+                       assemblerContext *context) {
     unsigned int dummyMethod1, dummyMethod2;
     int L = 0;
 
-    encodeOpFirstWord(op, NULL, NULL, &dummyMethod1, &dummyMethod2, &L,
-                      context);
+    encodeOpFirstWord(op, NULL, NULL, &dummyMethod1, &dummyMethod2, &L, IC,
+                      opList, context);
+
+    IC += L;
 }
 
 void encodeOpFirstWord(const operation *op, const char *operand1,
                        const char *operand2, addressingType *pMethod1,
-                       addressingType *pMethod2, int *L,
-                       assemblerContext *context) {
+                       addressingType *pMethod2, int *L, int *IC,
+                       binaryWordList *opList, assemblerContext *context) {
+    WordType wordType;
     opFirstWord word;
 
     word.opcode_bits = (*op).number;
@@ -129,12 +140,18 @@ void encodeOpFirstWord(const operation *op, const char *operand1,
         *pMethod1 = 0;
         *pMethod2 = 0;
     }
-    /*insertLineData(..., L, word);*/
-    L++;
+
+    /* store the opFirstWord inside the wordType union */
+    wordType.opFirst = word;
+
+    insertBinaryWord(opList, *IC, *L, wordType);
+    (*L)++;
 }
 
 void encodeTwoRegisters(const char *operand1, const char *operand2, int *L,
+                        int *IC, binaryWordList *opList,
                         assemblerContext *context) {
+    WordType wordType;
     registerPairWord word;
     const registerInfo *reg1, *reg2;
 
@@ -146,12 +163,18 @@ void encodeTwoRegisters(const char *operand1, const char *operand2, int *L,
         reg2 = searchRegister(*(*context).registers, operand2);
         word.reg2_bits = (*reg2).number;
     }
-    /*insertLineData(..., word);*/
-    L++;
+
+    /* store the registerPairWord inside the wordType union */
+    wordType.regPair = word;
+
+    insertBinaryWord(opList, *IC, *L, wordType);
+    (*L)++;
 }
 
-void encodeOperand(const char *operand, addressingType method, int *L,
-                   assemblerContext *context) {
+void encodeOperand(const char *operand, addressingType method, int *L, int *IC,
+                   binaryWordList *opList, assemblerContext *context) {
+    WordType wordType;
+
     if (method == IMMEDIATE) {
         PayloadWord word;
 
@@ -164,19 +187,28 @@ void encodeOperand(const char *operand, addressingType method, int *L,
         } else {
             /* convert to unsigned using 2's complement */
             word.payload_bits = (unsigned int)(num & 0xFF);
-            /* insertLineData(..., word); */
-            L++;
+
+            /* store the PayloadWord inside the wordType union */
+            wordType.payload = word;
+
+            insertBinaryWord(opList, *IC, *L, wordType);
+            (*L)++;
         }
     } else if (method == DIRECT) {
-        /* Mat symbol address is taken care of only in the second iteration */
-        /* insertLineData(..., NO_WORD_YET); */
+        PayloadWord word;
+        wordType.payload = word;
+        /* Symbol address is taken care of only in the second iteration, so we store an uninitialized payloadWord */
+        insertBinaryWord(opList, *IC, *L, wordType);
     } else if (method == MATRIX) {
-        size_t len = strlen(operand);
         char reg1Str[3], reg2Str[3];
+        size_t len = strlen(operand);
 
-        /* Mat symbol address is taken care of only in the second iteration */
-        /* insertLineData(..., NO_WORD_YET); */
-        L++;
+        PayloadWord word;
+        wordType.payload = word;
+
+        /* Mat symbol address is taken care of only in the second iteration, so we store an uninitialized payloadWord */
+        insertBinaryWord(opList, *IC, *L, wordType);
+        (*L)++;
 
         /* Mat row and col values are known and encoded in the first iteration: */
 
@@ -200,7 +232,7 @@ void encodeOperand(const char *operand, addressingType method, int *L,
             return;
         }
 
-        encodeTwoRegisters(reg1Str, reg2Str, L, context);
+        encodeTwoRegisters(reg1Str, reg2Str, L, IC, opList, context);
     }
 }
 

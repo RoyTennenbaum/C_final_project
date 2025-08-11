@@ -40,7 +40,7 @@ typedef struct {
 
 typedef union {
     directiveWord dir;
-    opFirstWord first;
+    opFirstWord opFirst;
     PayloadWord payload;
     registerPairWord regPair;
 } WordType;

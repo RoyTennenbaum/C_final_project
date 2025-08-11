@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include "../Headers/first-iteration.h"
 
-int firstIteration(char *fileName, assemblerContext *context, int *pICF,
-                   int *pDCF) {
+int firstIteration(char *fileName, int *pICF, int *pDCF,
+                   binaryWordList *codeImage, assemblerContext *context) {
     int IC = 0, DC = 0, lineNum = 0, errorFlag = 0;
-    codeImage dirList = NULL, opList = NULL, fullCodeImage;
+    binaryWordList dirList = NULL, opList = NULL;
     char line[LINE_SIZE], *arg, *newSymbolName, *colonPos;
     const directive *dir;
     const operation *op;
@@ -37,6 +37,7 @@ int firstIteration(char *fileName, assemblerContext *context, int *pICF,
             /* replace the colon in the symbol with '\0' */
             colonPos = strchr(arg, ':');
             *colonPos = '\0';
+
             newSymbolName = arg;
 
             /* Store the next word of the current line in arg */
@@ -53,10 +54,10 @@ int firstIteration(char *fileName, assemblerContext *context, int *pICF,
         }
 
         if ((dir = searchDirective(*(*context).directiveTable, arg)) != NULL) {
-            handleDirective(context, dir, &DC, newSymbolName);
+            handleDirective(dir, &DC, newSymbolName, &dirList, context);
         } else if ((op = searchOperation(*(*context).operationTable, arg)) !=
                    NULL) {
-            handleOperation(context, op, &IC, newSymbolName);
+            handleOperation(op, &IC, newSymbolName, &opList, context);
         } else {
             /* ERROR */
         }
