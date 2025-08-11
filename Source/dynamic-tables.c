@@ -83,6 +83,16 @@ void displaySymbol(symbolTable sHead) {
     }
 }
 
+void freeSymbolTable(symbolTable sHead) {
+    symbol *ptr = sHead;
+    while (ptr) {
+        symbol *next = (*ptr).next;
+        free((*ptr).label);
+        free(ptr);
+        ptr = next;
+    }
+}
+
 void insertMacro(macroTable *mHeadP, char *label, char *body) {
     macro *ptr = NULL;
     macro *newMacro = NULL;
@@ -157,9 +167,20 @@ void displayMacro(macroTable mHead) {
     }
 }
 
-void insertBinaryWord(binaryWordList *headP, int address, int L,
+void freeMacroTable(macroTable mHead) {
+    macro *ptr = mHead;
+    while (ptr) {
+        macro *next = (*ptr).next;
+        free((*ptr).label);
+        free((*ptr).body);
+        free(ptr);
+        ptr = next;
+    }
+}
+
+void insertBinaryWord(binaryWordList *bHeadP, int address, int L,
                       WordType word) {
-    binaryWordNode *ptr = *headP;
+    binaryWordNode *ptr = *bHeadP;
     binaryWordNode *prev = NULL;
     binaryWordNode *newNode;
 
@@ -186,14 +207,23 @@ void insertBinaryWord(binaryWordList *headP, int address, int L,
     (*newNode).next = NULL;
 
     /* Append to end of list */
-    if (*headP == NULL) {
-        *headP = newNode;
+    if (*bHeadP == NULL) {
+        *bHeadP = newNode;
     } else {
         (*prev).next = newNode;
     }
 
     /* for debugging */
-    printf("Item inserted: word=%u, address=%d, L=%d\n",
+    printf("Word inserted: word=%u, address=%d, L=%d\n",
            *(unsigned int *)&(*newNode).binaryWord, (*newNode).address,
            (*newNode).L);
+}
+
+void freeBinaryWordList(binaryWordList bHead) {
+    binaryWordNode *ptr = bHead;
+    while (ptr) {
+        binaryWordNode *next = (*ptr).next;
+        free(ptr);
+        ptr = next;
+    }
 }

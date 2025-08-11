@@ -32,7 +32,7 @@ typedef struct binary_word_node {
 /* Linked list definitions */
 typedef symbol *symbolTable;
 typedef macro *macroTable;
-/* binaryWordList contains the binary representation of a file after the first iteration */
+/* binaryWordList contains machine code encoded words */
 typedef binaryWordNode *binaryWordList;
 
 /* Function prototypes */
@@ -40,9 +40,13 @@ void insertSymbol(symbolTable *sHeadP, char *label, int address,
                   symbolType type);
 symbol *searchSymbol(symbolTable sHead, const char *label);
 void displaySymbol(symbolTable sHead); /* for debugging */
+void freeSymbolTable(symbolTable sHead);
 void insertMacro(macroTable *mHeadP, char *label, char *body);
 macro *searchMacro(macroTable mHead, char *label);
 void displayMacro(macroTable mHead); /* for debugging */
-void insertBinaryWord(binaryWordList *headP, int address, int L, WordType word);
+void freeMacroTable(macroTable mHead);
+void insertBinaryWord(binaryWordList *bHeadP, int address, int L,
+                      WordType word);
+void freeBinaryWordList(binaryWordList bHead);
 
 #endif

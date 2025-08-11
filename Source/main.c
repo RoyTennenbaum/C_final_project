@@ -2,8 +2,8 @@
 #include "../Headers/main.h"
 
 int main(int argc, char *argv[]) {
-    symbolTable symbolTableHead = NULL;
-    macroTable macroTableHead = NULL;
+    symbolTable symbolTableHead;
+    macroTable macroTableHead;
 
     static const operationTable opTable = {
         {"mov", MOV}, {"cmp", CMP}, {"add", ADD}, {"sub", SUB},
@@ -30,9 +30,17 @@ int main(int argc, char *argv[]) {
     context.registers = &regs;
 
     for (i = 1; i < argc; i++) {
-        /*preAssembler(argv[i], &context);*/
+        symbolTableHead = NULL;
+        macroTableHead = NULL;
+        codeImage = NULL;
+
+        preAssembler(argv[i], &context);
         firstIteration(argv[i], &ICF, &DCF, &codeImage, &context);
-        /*secondIteration(argv[i], &context, ICF, DCF);*/
+        secondIteration(argv[i], &context, ICF, DCF);
+
+        freeSymbolTable(symbolTableHead);
+        freeMacroTable(macroTableHead);
+        freeBinaryWordList(codeImage);
     }
 
     return 0;
