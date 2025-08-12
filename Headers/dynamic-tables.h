@@ -2,6 +2,7 @@
 #define DYNAMIC_TABLES_H
 
 #include "global.h"
+#include "errors.h"
 #include "word-types.h"
 
 /* Properties to differentiate between different symbol categories */
@@ -25,15 +26,23 @@ typedef struct macro_node {
 typedef struct binary_word_node {
     WordType binaryWord;
     int address; /* IC or DC */
-    int L; /* word count index in the same line as the address's */
+    int L; /* word count index in the same line as the counter's */
     struct binary_word_node *next;
 } binaryWordNode;
+
+/* error is a node of the linked list 'errors' */
+typedef struct error_node {
+    errorType errType;
+    int lineNum;
+    struct error_node *next;
+} error;
 
 /* Linked list definitions */
 typedef symbol *symbolTable;
 typedef macro *macroTable;
 /* binaryWordList contains machine code encoded words */
 typedef binaryWordNode *binaryWordList;
+typedef error *errorList;
 
 /* Function prototypes */
 void insertSymbol(symbolTable *sHeadP, char *label, int address,
@@ -48,5 +57,8 @@ void freeMacroTable(macroTable mHead);
 void insertBinaryWord(binaryWordList *bHeadP, int address, int L,
                       WordType word);
 void freeBinaryWordList(binaryWordList bHead);
+void insertError(errorList *eHeadP, errorType type, int lineNum);
+void displayErrors(errorList eHead);
+void freeErrorList(errorList eHead);
 
 #endif

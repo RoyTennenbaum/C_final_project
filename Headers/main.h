@@ -6,13 +6,13 @@
 #include "dynamic-tables.h"
 #include "static-tables.h"
 
-typedef struct
-{
+typedef struct {
     symbolTable *symbolTable;
     macroTable *macroTable;
     const operationTable *operationTable;
     const directiveTable *directiveTable;
     const registers *registers;
+    errorList *errors;
 } assemblerContext;
 
 int preAssembler(char *srcFileName, assemblerContext *context);

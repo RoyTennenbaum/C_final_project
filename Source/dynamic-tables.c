@@ -227,3 +227,62 @@ void freeBinaryWordList(binaryWordList bHead) {
         ptr = next;
     }
 }
+
+void insertError(errorList *eHeadP, errorType type, int lineNum) {
+    error *ptr = NULL;
+    error *newError = NULL;
+    int success = FALSE;
+
+    /* Allocate memory for new node in the list */
+    newError = (error *)malloc(sizeof(error));
+    /* Check if memory allocation was successful */
+    if (newError == NULL) {
+        printf("Error: failed to allocate memory\n");
+    } else {
+        /* Insert all node data in the allocated space */
+        (*newError).errType = type;
+        (*newError).lineNum = lineNum;
+        (*newError).next = NULL;
+
+        /* If the list was empty insert as first node */
+        if (*eHeadP == NULL) {
+            *eHeadP = newError;
+            success = TRUE;
+        } else { /* Else, insert as last node of the list */
+            ptr = *eHeadP;
+
+            while ((*ptr).next != NULL) {
+                ptr = (*ptr).next;
+            }
+
+            (*ptr).next = newError;
+            success = TRUE;
+        }
+    }
+
+    if (success) {
+        printf("Error inserted: type=%d, lineNum=%d\n", newError->errType,
+               newError->lineNum);
+    }
+}
+
+void displayErrors(errorList eHead) {
+    error *ptr = eHead;
+
+    printf("\nCompilation failed due to the following error(s):\n");
+    while (ptr != NULL) {
+        printf("On line #%d; ERROR: %s\n\n", (*ptr).lineNum,
+               getErrMessage((*ptr).errType));
+
+        ptr = (*ptr).next;
+    }
+}
+
+void freeErrorList(errorList eHead) {
+    error *ptr = eHead;
+    while (ptr) {
+        error *next = (*ptr).next;
+        free(ptr);
+        ptr = next;
+    }
+}
