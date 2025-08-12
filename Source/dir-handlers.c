@@ -47,7 +47,7 @@ void encodeDataDir(const directive *dir, int *DC, binaryWordList *dirList,
     WordType word;
     int L = 0;
     char *arg;
-    while ((arg = strtok(NULL, ", \t")) != NULL) {
+    while ((arg = strtok(NULL, ", \t\n")) != NULL) {
         int i = 0, num;
         size_t len = strlen(arg);
 
@@ -85,7 +85,7 @@ void encodeStrDir(const directive *dir, int *DC, binaryWordList *dirList,
                   assemblerContext *context) {
     WordType word;
     int L = 0, i;
-    char *param = strtok(NULL, " \t");
+    char *param = strtok(NULL, " \t\n");
     size_t len;
     printf("The string to encode is: %s\n", param);
 
@@ -96,7 +96,7 @@ void encodeStrDir(const directive *dir, int *DC, binaryWordList *dirList,
 
     len = strlen(param);
 
-    if (strtok(NULL, ", \t") != NULL) {
+    if (strtok(NULL, ", \t\n") != NULL) {
         printf(
             "ERROR: only one parameter is allowed for '.string' directive\n");
         return;
@@ -114,7 +114,7 @@ void encodeStrDir(const directive *dir, int *DC, binaryWordList *dirList,
     }
 
     /* Skip the starting quote, stop before ending quote */
-    for (i = 1; i <= (len - 1); i++) {
+    for (i = 1; i < (len - 1); i++) {
         /* Initialize the 'WordType' union with zeros */
         memset(&word, 0, sizeof(word));
 
@@ -138,7 +138,7 @@ void encodeMatDir(const directive *dir, int *DC, binaryWordList *dirList,
                   assemblerContext *context) {
     WordType word;
     int L = 0, num1, num2, matDim, value;
-    char *dimentions = strtok(NULL, " \t"), *valStr;
+    char *dimentions = strtok(NULL, " \t\n"), *valStr;
 
     if (!dimentions) {
         printf("ERROR: no parameters for '.mat' directive\n");
@@ -152,7 +152,7 @@ void encodeMatDir(const directive *dir, int *DC, binaryWordList *dirList,
     }
     matDim = num1 * num2;
 
-    while ((valStr = strtok(NULL, ", \t")) != NULL) {
+    while ((valStr = strtok(NULL, ", \t\n")) != NULL) {
         int i = 0;
 
         /* Cannot have more values than the dimention of the matrix */
