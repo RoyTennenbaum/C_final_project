@@ -6,6 +6,7 @@
 
 int firstIteration(char *fileName, int *pICF, int *pDCF,
                    binaryWordList *codeImage, assemblerContext *context) {
+    FILE *fp;
     int IC = 0, DC = 0, lineNum = 0, errorFlag = 0;
     binaryWordNode *dirPtr, *prevDirPtr, *opPtr;
     binaryWordList dirList = NULL, opList = NULL;
@@ -13,10 +14,20 @@ int firstIteration(char *fileName, int *pICF, int *pDCF,
     const directive *dir;
     const operation *op;
 
-    FILE *fp = fopen(fileName, "r");
+    /* Allocate memory for source filename with .am extension */
+    char *srcFileName = malloc(strlen(fileName) + 4);
+    if (srcFileName == NULL) {
+        fprintf(stdout, "Error: failed to allocate memory\n");
+        return FALSE;
+    }
+
+    strcpy(srcFileName, fileName);
+    strcat(srcFileName, ".am");
+
+    fp = fopen(srcFileName, "r");
     if (fp == NULL) {
         errorFlag = 1;
-        printf("Error: file '%s' could not be opened.\n", fileName);
+        printf("Error: file '%s' could not be opened.\n", srcFileName);
         return 1;
     }
 
@@ -60,12 +71,12 @@ int firstIteration(char *fileName, int *pICF, int *pDCF,
                    NULL) {
             handleOperation(op, &IC, newSymbolName, &opList, context);
         } else {
-            /* ERROR */
+            printf("ERROR: command does not exist");
         }
     }
 
     if (errorFlag) {
-        /* stop program */
+        return FALSE;
     }
 
     *pICF = IC;
@@ -93,13 +104,11 @@ int firstIteration(char *fileName, int *pICF, int *pDCF,
         /* If opList not empty, point codeImage to opList */
         *codeImage = opList;
 
-        /* Get last node of opList */
+        /* Append dirList to the end of opList */
         opPtr = opList;
         while ((*opPtr).next != NULL) {
             opPtr = (*opPtr).next;
         }
-
-        /* Append dirList to the end of opList */
         (*opPtr).next = dirList;
     }
 
