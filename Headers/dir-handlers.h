@@ -9,4 +9,8 @@ void handleDirective(const directive *dir, int *DC, char *symbolName,
 
 void encodeDataDir(const directive *dir, int *DC, binaryWordList *dirList,
                    assemblerContext *context);
+void encodeStrDir(const directive *dir, int *DC, binaryWordList *dirList,
+                  assemblerContext *context);
+void encodeMatDir(const directive *dir, int *DC, binaryWordList *dirList,
+                  assemblerContext *context);
 #endif

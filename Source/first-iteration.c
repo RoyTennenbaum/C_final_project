@@ -26,7 +26,7 @@ int firstIteration(char *fileName, int *pICF, int *pDCF,
         newSymbolName = NULL;
 
         /* Get the first word in the line */
-        arg = strtok(line, " \t");
+        arg = strtok(line, " \t\n");
         printf("The first word is: '%s'\n", arg);
 
         /* Skip comment lines and empty lines */
@@ -42,7 +42,7 @@ int firstIteration(char *fileName, int *pICF, int *pDCF,
             newSymbolName = arg;
 
             /* Store the next word of the current line in arg */
-            arg = strtok(NULL, " \t");
+            arg = strtok(NULL, " \t\n");
             printf("First word was a symbol. Second word is: '%s'\n", arg);
 
             /* Check if symbol is followed by a directive or an instruction */
