@@ -3,75 +3,73 @@
 const char *getErrMessage(errorType type) {
     switch (type) {
     case ERR_MEM_ALLOC:
-        return "Error: failed to allocate memory";
+        return "Failed to allocate memory";
     case ERR_FILE_OPEN:
-        return "Error: cannot open file '%s'";
+        return "Cannot open file";
     case ERR_IO:
-        return "Error: IO error";
+        return "Generic IO error";
     case ERR_LINE_TOO_LONG:
-        return "Error at line %d: line is too long";
+        return "Line too long";
     case ERR_UNKNOWN_LINE_TYPE:
-        return "Error at line %d: unknown line type";
+        return "Unknown line type";
     case ERR_INSERT_EMPTY_LINE_FAIL:
-        return "Error at line %d: failed to insert empty line";
+        return "Failed to insert empty line";
     case ERR_MACRO_EXPANSION_FAIL:
-        return "Error at line %d: macro expansion failed";
-    case ERR_INVALID_MACRO_NAME:
-        return "Error at line %d: invalid macro name '%s'";
+        return "Macro expansion failed";
+    case ERR_ILLEGAL_MACRO_NAME:
+        return "Illegal macro name";
     case ERR_SYMBOL_NOT_FOLLOWED:
-        return "Error: symbol is not followed by a directive or an instruction";
+        return "Symbol is not followed by a directive or an instruction";
     case ERR_DUPLICATE_SYMBOL:
-        return "Error: duplicate symbol definition";
+        return "Duplicate symbol definition";
     case ERR_UNDEFINED_SYMBOL:
-        return "Error: undefined symbol referenced";
+        return "Undefined symbol referenced";
     case ERR_SYMBOL_TOO_LONG:
-        return "Error: symbol exceeds maximum length";
+        return "Symbol exceeds allowed length (max 30 chars)";
     case ERR_RESERVED_NAME:
-        return "Error: symbol or identifier uses reserved name";
+        return "Symbol or identifier uses reserved name";
     case ERR_INVALID_COMMAND:
-        return "Error: command does not exist";
+        return "Command does not exist";
     case ERR_INVALID_OPERAND_COUNT:
-        return "Error: invalid number of operands";
+        return "Invalid number of operands";
     case ERR_TOO_MANY_OPERANDS:
-        return "Error: too many operands";
+        return "Too many operands";
     case ERR_MISSING_OPERANDS:
-        return "Error: missing operands";
+        return "Missing operands";
     case ERR_INVALID_ADDRESSING:
-        return "Error: invalid addressing method(s)";
+        return "Invalid addressing method(s)";
     case ERR_INVALID_INTEGER:
-        return "Error: one or more of the params is not a legal integer";
+        return "One or more of the params is not a legal integer";
     case ERR_NUMBER_OUT_OF_RANGE:
-        return "Error: number out of range";
+        return "Number out of valid range";
     case ERR_INVALID_NUMBER_FORMAT:
-        return "Error: invalid number format";
-    case ERR_STRING_NO_PARAM:
-        return "Error: no parameter for '.string' directive";
-    case ERR_STRING_TOO_MANY_PARAMS:
-        return "Error: only one parameter is allowed for '.string' directive";
+        return "Invalid number format";
+    case ERR_DIR_NO_PARAM:
+        return "No parameter following the directive";
+    case ERR_STR_TOO_MANY_PARAMS:
+        return "Only one parameter allowed for '.string' directive";
     case ERR_STRING_TOO_SHORT:
-        return "Error: parameter of '.string' directive is too short";
+        return "Parameter of '.string' directive is too short";
     case ERR_STRING_MISSING_QUOTES:
-        return "Error: no \" in the beginning or end of '.string' parameter";
-    case ERR_MAT_NO_PARAMS:
-        return "Error: no parameters for '.mat' directive";
-    case ERR_MAT_INVALID_DIMS:
-        return "Error: invalid '.mat' dimensions format";
+        return "Missing \" in the beginning or end of the parameter";
+    case ERR_MAT_INVALID_DIM:
+        return "Invalid matrix dimensions format";
     case ERR_MAT_TOO_MANY_VALUES:
-        return "Error: too many values for matrix";
+        return "Too many values for matrix";
     case ERR_MAT_INVALID_VALUE:
-        return "Error: one or more of the values is not a legal integer";
+        return "One or more of the values is not a legal integer";
     case ERR_MAT_INVALID_REGISTERS:
-        return "Error: invalid row and column registers";
-    case ERR_MATRIX_ADDR_ILLEGAL_LEN:
-        return "Error: illegal length for matrix addressing";
+        return "Invalid row and/or column registers";
+    case ERR_MAT_ADDRESS_ILLEGAL_LEN:
+        return "Illegal length for matrix addressing (min 9 chars)";
     case ERR_ENTRY_SYMBOL_NOT_FOUND:
-        return "Error at line %d: .entry operand symbol is not found";
+        return "'.entry' operand symbol was not found";
     case ERR_ENTRY_SYMBOL_DEFINED_EXTERN:
-        return "Error at line %d: .entry operand symbol is defined as external";
+        return "'.entry' operand symbol was defined as external";
     case ERR_CODE_IMAGE_OVERFLOW:
-        return "Error: code or data image overflow";
+        return "Code image overflow";
     case ERR_ALIGNMENT:
-        return "Error: memory alignment error";
+        return "Memory alignment error";
     case ERR_INTERNAL:
         return "Internal assembler error";
     case ERR_SYNTAX:

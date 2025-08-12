@@ -304,9 +304,9 @@ int isMatrixAddressExpected(const registers regs, const char *operand) {
     int labelBuf = LINE_SIZE - len;
     size_t labelLen = len - 8;
 
-    /* The format should be at least 8 chars, for it contains "[rX][rY]" */
-    if (len < 8) {
-        return 0;
+    /* The format should be at least 9 chars, for it contains "M[rX][rY]" */
+    if (len < 9) {
+        return FALSE;
     }
 
     /* Check brackets at specific positions */

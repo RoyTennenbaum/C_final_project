@@ -268,14 +268,22 @@ void insertError(errorList *eHeadP, errorType type, int lineNum) {
 
 void displayErrors(errorList eHead) {
     error *ptr = eHead;
+    int count = 0;
 
-    printf("\nCompilation failed due to the following error(s):\n");
+    printf("\n==================================================\n");
+    printf(" Assembly failed due to the following errors:\n");
+    printf("==================================================\n\n");
+
     while (ptr != NULL) {
-        printf("On line #%d; ERROR: %s\n\n", (*ptr).lineNum,
+        count++;
+        printf("[%2d] Line %-4d | Error: %s\n", count, (*ptr).lineNum,
                getErrMessage((*ptr).errType));
-
         ptr = (*ptr).next;
     }
+
+    printf("\n==================================================\n");
+    printf(" Total error count: %d\n", count);
+    printf("==================================================\n\n");
 }
 
 void freeErrorList(errorList eHead) {
