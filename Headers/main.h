@@ -12,7 +12,7 @@ typedef struct {
     const operationTable *operationTable;
     const directiveTable *directiveTable;
     const registers *registers;
-    errorList *errors;
+    errorList *errorList;
 } assemblerContext;
 
 int preAssembler(char *srcFileName, assemblerContext *context);
