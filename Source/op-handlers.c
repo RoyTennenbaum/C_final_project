@@ -20,6 +20,7 @@ void handleOperation(const operation *op, int *IC, char *symbolName,
         printf("ERROR: Too many operands\n");
         return;
     }
+    printf("OP NUMBER: %d", (*op).number);
 
     switch ((*op).number) {
     case MOV:
@@ -41,8 +42,14 @@ void handleOperation(const operation *op, int *IC, char *symbolName,
     case RED:
     case PRN:
     case JSR:
-        if (operand1 == NULL)
+        if (operand1 == NULL) {
             printf("ERROR: Missing operand\n");
+            return;
+        }
+        if (!operand2) {
+            printf("ERROR: Too many operand\n");
+            return;
+        }
         handleOneOperandOp(op, operand1, IC, opList, context);
         break;
 
