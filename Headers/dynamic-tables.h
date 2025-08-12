@@ -6,10 +6,17 @@
 #include "word-types.h"
 
 /* Properties to differentiate between different symbol categories */
-typedef enum { TYPE_EXTERNAL, TYPE_DATA, TYPE_CODE } symbolType;
+typedef enum
+{
+    TYPE_EXTERNAL,
+    TYPE_DATA,
+    TYPE_CODE,
+    TYPE_ENTRY
+} symbolType;
 
 /* symbol is a node of the linked list 'symbolTable' */
-typedef struct symbol_node {
+typedef struct symbol_node
+{
     char *label;
     int address;
     symbolType type;
@@ -17,21 +24,24 @@ typedef struct symbol_node {
 } symbol;
 
 /* macro is a node of the linked list 'macroTable' */
-typedef struct macro_node {
+typedef struct macro_node
+{
     char *label;
     char *body;
     struct macro_node *next;
 } macro;
 
-typedef struct binary_word_node {
+typedef struct binary_word_node
+{
     WordType binaryWord;
     int address; /* IC or DC */
-    int L; /* word count index in the same line as the counter's */
+    int L;       /* word count index in the same line as the counter's */
     struct binary_word_node *next;
 } binaryWordNode;
 
 /* error is a node of the linked list 'errors' */
-typedef struct error_node {
+typedef struct error_node
+{
     errorType errType;
     int lineNum;
     struct error_node *next;

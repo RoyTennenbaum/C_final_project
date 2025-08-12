@@ -6,7 +6,8 @@
 #include "dynamic-tables.h"
 #include "static-tables.h"
 
-typedef struct {
+typedef struct
+{
     symbolTable *symbolTable;
     macroTable *macroTable;
     const operationTable *operationTable;
@@ -19,6 +20,6 @@ int preAssembler(char *srcFileName, assemblerContext *context);
 int firstIteration(char *fileName, int *pICF, int *pDCF,
                    binaryWordList *codeImage, assemblerContext *context);
 int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
-                    assemblerContext *context);
+                    assemblerContext *context, symbolTable entriesTable);
 
 #endif
