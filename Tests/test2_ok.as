@@ -1,29 +1,28 @@
 ; Counter initialization macro
 mcro INIT_COUNTER
-        mov MAX_VAL, COUNT
+        mov #6, COUNT
         mov #0, STEP_COUNT
 endmcro
 
 ; Decrement operation macro
 mcro DECREMENT_STEP
-        sub STEP_SIZE, COUNT
+        sub #2, COUNT
         inc STEP_COUNT
 endmcro
 
-; Configuration constants
-MAX_VAL = 6
-STEP_SIZE = 2
-
-        ; Start counter program
+; Start counter program
         INIT_COUNTER
 COUNT: .data 0
 STEP_COUNT: .data 0
-LOOP:   DECREMENT_STEP      ; Perform decrement step
+; Perform decrement step
+LOOP:   DECREMENT_STEP
 .entry LOOP  
-        cmp COUNT, #0        ; Check if counter reached zero
-        bne LOOP            ; Continue if not zero
+; Check if counter reached zero
+        cmp COUNT, #0
+; Continue if not zero
+        bne LOOP
 END_MSG: .string "Steps taken:"
-        ; Display final results
+; Display final results
         prn END_MSG
         prn STEP_COUNT
         stp

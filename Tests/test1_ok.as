@@ -1,7 +1,7 @@
 ; Array search macro definitions
 mcro LOAD_ARRAY
         lea ARRAY, r0
-        mov SIZE, r1
+        mov #5, r1
 endmcro
 
 mcro PRINT_RESULT
@@ -9,21 +9,18 @@ mcro PRINT_RESULT
         prn FOUND
 endmcro
 
-; Constants for array processing
-SIZE = 5
-TARGET = 20
-
-        ; Initialize array processing
+; Initialize array processing
         LOAD_ARRAY
 ARRAY: .data 10, 20, 30, 15, 25
-        mov #TARGET, r2
+        mov #20, r2
 .entry SEARCH
-SEARCH: mov ARRAY[#1], r3  ; Load element at index 1
-        cmp r3, r2           ; Compare with target
+; Load element at index 1
+SEARCH: mov ARRAY[#1], r3
+; Compare with target
+        cmp r3, r2
 FOUND: .data 0
-        bne NOT_MATCH        ; Branch if not equal
-        mov #1, FOUND        ; Set found flag
+; Branch if not equal
+        bne NOT_MATCH
+; Set found flag
+        mov #1, FOUND
 .entry FOUND
-NOT_MATCH: PRINT_RESULT     ; Display results
-        stp
-RESULT_MSG: .string "Found:"
