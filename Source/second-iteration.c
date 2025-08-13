@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include "../Headers/second-iteration.h"
 
-/* Second pass of assembler - resolves symbols and generates output files */
 int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage, assemblerContext *context,
                     symbolTable *entriesTable) {
     int state;
@@ -41,9 +40,11 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
 
     while (fgets(line, LINE_SIZE, srcFile) != NULL) {
         lineNum++;
+        printf("\nLINE #%d\n", lineNum);
         state = UNKNOWN_LINE_TYPE;
 
         arg = strtok(line, ":\n");
+        printf("The first word is: '%s'\n", arg);
 
         if (arg == NULL)
             state = EMPTY_LINE;
@@ -54,8 +55,9 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
         /* Check if line starts with symbol definition */
         if (searchSymbol(*(context->symbolTable), arg) != NULL) {
             arg = strtok(NULL, "\n");
-            while (isspace(*arg))
+            while (isspace((unsigned char)*arg))
                 arg++;
+            printf("First word was a symbol. Second word is: '%s'\n", arg);
         }
 
         else if ((tempDirective = searchDirective(*(context->directiveTable), arg)) != NULL) {
@@ -73,9 +75,11 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
         case EMPTY_LINE:
         case COMMENT_LINE:
         case NON_ENTRY_DIRECTIVE_LINE:
+            printf("Line is empty/comment/non-entry-directive\n");
             continue;
 
         case ENTRY_LINE:
+            printf("Line is an entry line\n");
             res = handleEntryLine(&arg, lineNum, context, entriesTable, &entriesContent, &entriesContentCapacity);
             if (res != TRUE) {
                 if (res == MEMORY_ALLOCATION_ERROR)
@@ -86,6 +90,7 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
             break;
 
         case OPERATION_LINE:
+            printf("Line is an operation line\n");
             res = handleOperationLine(&currentOpWordP, arg, lineNum, context, entriesTable, &externalsContent,
                                       &externalsContentCapacity);
             if (res != TRUE) {
@@ -147,6 +152,7 @@ int handleEntryLine(char **argP, int lineNum, assemblerContext *context, symbolT
     symbol *tempSymbol;
 
     *argP = strtok(NULL, " \t");
+    printf("Next word: '%s'\n", *argP);
 
     if ((tempSymbol = searchSymbol(*(context->symbolTable), *argP)) != NULL) {
         if ((*tempSymbol).type == TYPE_EXTERNAL) {
@@ -187,6 +193,8 @@ int writeToEntries(symbol *symbolP, char **entriesContentP, size_t *entriesConte
     strcat(*entriesContentP, label);
     strcat(*entriesContentP, "\t");
     strcat(*entriesContentP, base4Address);
+
+    printf("entriesContent: '%s'\n", *entriesContentP);
     return TRUE;
 }
 
@@ -272,6 +280,10 @@ int handleTwoOperandOpEncoding(binaryWordNode *opFirstWordP, char *lineCopy, uns
     strtok(lineCopy, " \t");
     label1 = strtok(NULL, "[ , \t");
     label2 = strtok(NULL, " \t\n");
+
+    printf("lineCopy: '%s'\n", lineCopy);
+    printf("label1: '%s'\n", label1);
+    printf("label2: '%s'\n", label2);
 
     /* Encode source operand if needed */
     if (srcOperandAddressEncoding == DIRECT_ENCODING || srcOperandAddressEncoding == MATRIX_ENCODING)
@@ -375,6 +387,8 @@ int writeToExternals(binaryWordNode currentWordP, char *label, int lineNum, char
     strcat(*externalsContentP, "\t");
     strcat(*externalsContentP, base4Address);
 
+    printf("externalsContentP: '%s'\n", *externalsContentP);
+
     return TRUE;
 }
 
@@ -396,6 +410,9 @@ int handleOneOperandOpEncoding(binaryWordNode *opFirstWordP, char *lineCopy, uns
 
     strtok(lineCopy, " \t");
     label = strtok(NULL, "[\n");
+
+    printf("lineCopy: '%s'\n", lineCopy);
+    printf("label: '%s'\n", label);
 
     if (destOperandAddressEncoding == DIRECT_ENCODING || destOperandAddressEncoding == MATRIX_ENCODING)
         res = encodeOpPayloadWord(label, lineNum, context, entriesTable, currentWordP, externalsContentP,
