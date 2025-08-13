@@ -3,7 +3,7 @@ mcro SETUP_STRING
         lea TEXT, r0
         mov #5, LENGTH
         mov #0, CHAR_COUNT
-endmcro
+mcroend
 
 ; Character checking macro
 mcro CHECK_CHAR
@@ -12,7 +12,7 @@ mcro CHECK_CHAR
         bne SKIP_COUNT
         inc CHAR_COUNT
 SKIP_COUNT:
-endmcro
+mcroend
 
 ; Begin string analysis
         SETUP_STRING

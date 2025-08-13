@@ -3,13 +3,13 @@ mcro CALC_POSITION
         mov ROW_VAL, INDEX
         mul #3, INDEX
         add COL_VAL, INDEX
-endmcro
+mcroend
 
 ; Element loading macro
 mcro LOAD_ELEMENT
         CALC_POSITION
         mov MATRIX[r1][r2], VALUE
-endmcro
+mcroend
 
 ; Set matrix coordinates
         mov #1, ROW_VAL

@@ -2,14 +2,14 @@
 mcro INIT_FACTORIAL
         mov #4, N
         mov #1, RESULT
-endmcro
+mcroend
 
 ; Multiplication through addition macro
 mcro MULTIPLY_ADD
         mov RESULT, TEMP
         add RESULT, TEMP
         dec N
-endmcro
+mcroend
 
 ; Initialize factorial calculation
         INIT_FACTORIAL

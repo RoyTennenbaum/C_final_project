@@ -2,13 +2,13 @@
 mcro INIT_COUNTER
         mov #6, COUNT
         mov #0, STEP_COUNT
-endmcro
+mcroend
 
 ; Decrement operation macro
 mcro DECREMENT_STEP
         sub #2, COUNT
         inc STEP_COUNT
-endmcro
+mcroend
 
 ; Start counter program
         INIT_COUNTER

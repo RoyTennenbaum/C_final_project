@@ -2,12 +2,12 @@
 mcro LOAD_ARRAY
         lea ARRAY, r0
         mov #5, r1
-endmcro
+mcroend
 
 mcro PRINT_RESULT
         prn RESULT_MSG
         prn FOUND
-endmcro
+mcroend
 
 ; Initialize array processing
         LOAD_ARRAY
