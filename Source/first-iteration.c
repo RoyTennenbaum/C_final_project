@@ -4,20 +4,26 @@
 #include <stdlib.h>
 #include "../Headers/first-iteration.h"
 
-int firstIteration(char *fileName, int *pICF, int *pDCF,
-                   binaryWordList *codeImage, assemblerContext *context) {
+int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeImage, assemblerContext *context) {
+    /* File handler */
     FILE *fp;
-    int IC = 0, DC = 0, lineNum = 0, errorFlag = 0;
-    binaryWordNode *dirPtr, *prevDirPtr, *opPtr;
-    binaryWordList dirList = NULL, opList = NULL;
-    char line[LINE_SIZE], *arg, *newSymbolName, *colonPos;
+    /* Counters */
+    int IC = 0, DC = 0;
+    /* Error handling vars */
+    int lineNum = 0, errorFlag = FALSE;
+    /* Parsing vars */
+    char line[LINE_SIZE];
+    char *arg, *newSymbolName, *colonPos;
     const directive *dir;
     const operation *op;
+    /* List vars */
+    binaryWordNode *dirPtr, *prevDirPtr, *opPtr;
+    binaryWordList dirList = NULL, opList = NULL;
 
     /* Allocate memory for source filename with .am extension */
     char *srcFileName = malloc(strlen(fileName) + 4);
     if (srcFileName == NULL) {
-        fprintf(stdout, "Error: failed to allocate memory\n");
+        insertError((*context).errorList, ERR_MEM_ALLOC, lineNum);
         return FALSE;
     }
 
@@ -26,9 +32,8 @@ int firstIteration(char *fileName, int *pICF, int *pDCF,
 
     fp = fopen(srcFileName, "r");
     if (fp == NULL) {
-        errorFlag = 1;
-        printf("Error: file '%s' could not be opened.\n", srcFileName);
-        return 1;
+        insertError((*context).errorList, ERR_FILE_OPEN, lineNum);
+        return FALSE;
     }
 
     while (fgets(line, LINE_SIZE, fp) != NULL) {
@@ -58,26 +63,24 @@ int firstIteration(char *fileName, int *pICF, int *pDCF,
 
             /* Check if symbol is followed by a directive or an instruction */
             if (arg == NULL) {
-                errorFlag = 1;
-                printf("ERROR: symbol is not followed by a directive or "
-                       "an instruction.\n");
-                continue;
+                errorFlag = TRUE;
+                insertError((*context).errorList, ERR_SYMBOL_NOT_FOLLOWED, lineNum);
             }
         }
 
         if ((dir = searchDirective(*(*context).directiveTable, arg)) != NULL) {
-            handleDirective(dir, &DC, newSymbolName, &dirList, context);
-        } else if ((op = searchOperation(*(*context).operationTable, arg)) !=
-                   NULL) {
-            handleOperation(op, &IC, newSymbolName, &opList, context);
+            handleDirective(dir, &DC, newSymbolName, &dirList, lineNum, &errorFlag, context);
+        } else if ((op = searchOperation(*(*context).operationTable, arg)) != NULL) {
+            handleOperation(op, &IC, newSymbolName, &opList, lineNum, &errorFlag, context);
         } else {
-            printf("ERROR: command does not exist");
+            errorFlag = TRUE;
+            insertError((*context).errorList, ERR_INVALID_COMMAND, lineNum);
         }
     }
 
-    if (errorFlag) {
+    /* If program had errors, stop running now */
+    if (errorFlag)
         return FALSE;
-    }
 
     *pICF = IC;
 
@@ -124,18 +127,15 @@ int isNewSymbol(assemblerContext *context, char *str) {
     if (len < 1) {
         return FALSE;
     }
-    if (len <= 30 && isalpha(str[0]) && str[len - 1] == ':' &&
-        !isKeyword(context, str)) {
+    if (len <= 30 && isalpha(str[0]) && str[len - 1] == ':' && !isKeyword(context, str)) {
         return TRUE;
     }
     return FALSE;
 }
 
 int isKeyword(assemblerContext *context, char *str) {
-    if (searchSymbol(*(*context).symbolTable, str) ||
-        searchMacro(*(*context).macroTable, str) ||
-        searchOperation(*(*context).operationTable, str) ||
-        searchDirective(*(*context).directiveTable, str) ||
+    if (searchSymbol(*(*context).symbolTable, str) || searchMacro(*(*context).macroTable, str) ||
+        searchOperation(*(*context).operationTable, str) || searchDirective(*(*context).directiveTable, str) ||
         searchRegister(*(*context).registers, str)) {
         return TRUE;
     }

@@ -7,8 +7,7 @@
  * Insert a node at the end of the list.
  * Traverses the list to the last node and appends the new node.
  */
-void insertSymbol(symbolTable *sHeadP, char *label, int address,
-                  symbolType type) {
+void insertSymbol(symbolTable *sHeadP, char *label, int address, symbolType type, int lineNum) {
     symbol *ptr = NULL;
     symbol *newSymbol = NULL;
     int success = FALSE;
@@ -17,7 +16,7 @@ void insertSymbol(symbolTable *sHeadP, char *label, int address,
     newSymbol = (symbol *)malloc(sizeof(symbol));
     /* Check if memory allocation was successful */
     if (newSymbol == NULL) {
-        printf("Memory allocation failed!\n");
+        setFatalError(lineNum, ERR_MEM_ALLOC);
     } else {
         /* Insert all node data in the allocated space */
         (*newSymbol).label = malloc(strlen(label) + 1);
@@ -43,8 +42,7 @@ void insertSymbol(symbolTable *sHeadP, char *label, int address,
     }
 
     if (success) {
-        printf("Item inserted: label=%s, address=%d\n", (*newSymbol).label,
-               (*newSymbol).address);
+        printf("Item inserted: label=%s, address=%d\n", (*newSymbol).label, (*newSymbol).address);
     }
     displaySymbol(*sHeadP);
 }
@@ -75,8 +73,7 @@ void displaySymbol(symbolTable sHead) {
     } else {
         printf("Sr. No.\t\tAddress\t\tInfo\t\tNext\n");
         while (ptr != NULL) {
-            printf("%d.\t\t%p\t%s\t\t%p\n", i, (void *)ptr, ptr->label,
-                   (void *)ptr->next);
+            printf("%d.\t\t%p\t%s\t\t%p\n", i, (void *)ptr, ptr->label, (void *)ptr->next);
             ptr = ptr->next;
             i++;
         }
@@ -128,8 +125,7 @@ void insertMacro(macroTable *mHeadP, char *label, char *body) {
     }
 
     if (success) {
-        printf("Item inserted: label=%s, body=%s\n", newMacro->label,
-               newMacro->body);
+        printf("Item inserted: label=%s, body=%s\n", newMacro->label, newMacro->body);
     }
 }
 
@@ -159,8 +155,7 @@ void displayMacro(macroTable mHead) {
     } else {
         printf("Sr. No.\t\tAddress\t\tInfo\t\tNext\n");
         while (ptr != NULL) {
-            printf("%d.\t\t%p\t%s\t\t%p\n", i, (void *)ptr, ptr->label,
-                   (void *)ptr->next);
+            printf("%d.\t\t%p\t%s\t\t%p\n", i, (void *)ptr, ptr->label, (void *)ptr->next);
             ptr = ptr->next;
             i++;
         }
@@ -178,8 +173,7 @@ void freeMacroTable(macroTable mHead) {
     }
 }
 
-void insertBinaryWord(binaryWordList *bHeadP, int address, int L,
-                      WordType word) {
+void insertBinaryWord(binaryWordList *bHeadP, int address, int L, WordType word, int lineNum) {
     binaryWordNode *ptr = *bHeadP;
     binaryWordNode *prev = NULL;
     binaryWordNode *newNode;
@@ -190,13 +184,11 @@ void insertBinaryWord(binaryWordList *bHeadP, int address, int L,
         ptr = (*ptr).next;
     }
 
-    /* No existing node for this address, create new one */
-
     /* Allocate memory for new node in the list */
     newNode = malloc(sizeof(*newNode));
     /* Check if memory allocation was successful */
     if (!newNode) {
-        printf("Memory allocation for binaryWordNode failed!\n");
+        setFatalError(lineNum, ERR_MEM_ALLOC);
         return;
     }
 
@@ -214,8 +206,7 @@ void insertBinaryWord(binaryWordList *bHeadP, int address, int L,
     }
 
     /* for debugging */
-    printf("Word inserted: word=%u, address=%d, L=%d\n",
-           *(unsigned int *)&(*newNode).binaryWord, (*newNode).address,
+    printf("Word inserted: word=%u, address=%d, L=%d\n", *(unsigned int *)&(*newNode).binaryWord, (*newNode).address,
            (*newNode).L);
 }
 
@@ -261,8 +252,7 @@ void insertError(errorList *eHeadP, errorType type, int lineNum) {
     }
 
     if (success) {
-        printf("Error inserted: type=%d, lineNum=%d\n", newError->errType,
-               newError->lineNum);
+        printf("Error inserted: type=%d, lineNum=%d\n", newError->errType, newError->lineNum);
     }
 }
 
@@ -276,8 +266,7 @@ void displayErrors(errorList eHead) {
 
     while (ptr != NULL) {
         count++;
-        printf("[%2d] Line %-4d | Error: %s\n", count, (*ptr).lineNum,
-               getErrMessage((*ptr).errType));
+        printf("[%2d] Line %-4d | Error: %s\n", count, (*ptr).lineNum, getErrMessage((*ptr).errType));
         ptr = (*ptr).next;
     }
 

@@ -1,4 +1,12 @@
+#include <stdio.h>
 #include "../Headers/errors.h"
+
+int fatalError = FALSE;
+
+void setFatalError(int lineNum, errorType type) {
+    fatalError = TRUE;
+    printf("[XX] Line %-4d | FATAL ERROR: %s\n", lineNum, getErrMessage(type));
+}
 
 const char *getErrMessage(errorType type) {
     switch (type) {
@@ -27,8 +35,8 @@ const char *getErrMessage(errorType type) {
         return "Duplicate symbol definition";
     case ERR_UNDEFINED_SYMBOL:
         return "Undefined symbol referenced";
-    case ERR_SYMBOL_TOO_LONG:
-        return "Symbol exceeds allowed length (max 30 chars)";
+    case ERR_SYMBOL_INVALID_LEN:
+        return "Invalid symbol length (1-30 chars)";
     case ERR_RESERVED_NAME:
         return "Symbol or identifier uses reserved name";
 
@@ -70,6 +78,9 @@ const char *getErrMessage(errorType type) {
         return "Invalid row and/or column registers";
     case ERR_MAT_ADDRESS_ILLEGAL_LEN:
         return "Illegal length for matrix addressing (min 9 chars)";
+
+    case ERR_INVALID_REGISTER:
+        return "Invalid register name";
 
     case ERR_ENTRY_SYMBOL_NOT_FOUND:
         return "'.entry' operand symbol was not found";

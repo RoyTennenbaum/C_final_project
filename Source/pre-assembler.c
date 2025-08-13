@@ -104,7 +104,7 @@ int preAssembler(char *fileName, assemblerContext *context) {
         switch (state) {
         case EMPTY_LINE:
             /* Handle empty or whitespace-only lines */
-            res = handleEmptyLine(&amContent, &contentCapacity, lineNum);
+            res = handleEmptyLine(&amContent, &contentCapacity, lineNum, context);
             if (res == MEMORY_ALLOCATION_ERROR) {
                 free(srcFileName);
                 free(amContent);
@@ -116,8 +116,7 @@ int preAssembler(char *fileName, assemblerContext *context) {
 
         case MACRO_SPREAD:
             /* Expand macro call with its arguments */
-            res = handleMacroSpread(tempMacro, &arg, &amContent,
-                                    &contentCapacity, lineNum);
+            res = handleMacroSpread(tempMacro, &arg, &amContent, &contentCapacity, lineNum, context);
             if (res == MEMORY_ALLOCATION_ERROR) {
                 free(srcFileName);
                 free(amContent);
@@ -141,7 +140,7 @@ int preAssembler(char *fileName, assemblerContext *context) {
 
         case NORMAL_LINE:
             /* Copy regular assembly instruction as-is */
-            res = addToContent(line, &amContent, &contentCapacity, lineNum);
+            res = addToContent(line, &amContent, &contentCapacity, lineNum, context);
             if (res == MEMORY_ALLOCATION_ERROR) {
                 free(srcFileName);
                 free(amContent);
@@ -161,7 +160,7 @@ int preAssembler(char *fileName, assemblerContext *context) {
 
     /* Create output .am file only if no syntax errors occurred */
     if (errorFlag == FALSE) {
-        res = createOutputFile(fileName, amContent);
+        res = createOutputFile(fileName, amContent, lineNum, context);
         if (res == MEMORY_ALLOCATION_ERROR) {
             free(srcFileName);
             free(amContent);
@@ -185,10 +184,10 @@ int preAssembler(char *fileName, assemblerContext *context) {
  *
  * Adds a newline to keep empty lines in output
  */
-int handleEmptyLine(char **amContent, size_t *contentCapacity, int lineNum) {
+int handleEmptyLine(char **amContent, size_t *contentCapacity, int lineNum, assemblerContext *context) {
     int res;
 
-    res = addToContent("\n", amContent, contentCapacity, lineNum);
+    res = addToContent("\n", amContent, contentCapacity, lineNum, context);
     if (res == MEMORY_ALLOCATION_ERROR) {
         insertError((*context).errorList, ERR_MEM_ALLOC, lineNum);
         return MEMORY_ALLOCATION_ERROR;
@@ -205,12 +204,12 @@ int handleEmptyLine(char **amContent, size_t *contentCapacity, int lineNum) {
  *
  * Replaces macro call with macro body plus arguments
  */
-int handleMacroSpread(macro *tempMacro, char **argP, char **amContent,
-                      size_t *contentCapacity, int lineNum) {
+int handleMacroSpread(macro *tempMacro, char **argP, char **amContent, size_t *contentCapacity, int lineNum,
+                      assemblerContext *context) {
     int res;
 
     /* Insert macro body into output */
-    res = addToContent((*tempMacro).body, amContent, contentCapacity, lineNum);
+    res = addToContent((*tempMacro).body, amContent, contentCapacity, lineNum, context);
     if (res == MEMORY_ALLOCATION_ERROR) {
         insertError((*context).errorList, ERR_MEM_ALLOC, lineNum);
         return MEMORY_ALLOCATION_ERROR;
@@ -224,23 +223,21 @@ int handleMacroSpread(macro *tempMacro, char **argP, char **amContent,
 
     /* Add each argument with space before it */
     while (*argP != NULL) {
-        res = addToContent(" ", amContent, contentCapacity, lineNum);
+        res = addToContent(" ", amContent, contentCapacity, lineNum, context);
         if (res == MEMORY_ALLOCATION_ERROR) {
             insertError((*context).errorList, ERR_MEM_ALLOC, lineNum);
             return MEMORY_ALLOCATION_ERROR;
         } else if (res != TRUE) {
-            insertError((*context).errorList, ERR_MACRO_EXPANSION_FAIL,
-                        lineNum);
+            insertError((*context).errorList, ERR_MACRO_EXPANSION_FAIL, lineNum);
             return FALSE;
         }
 
-        res = addToContent(*argP, amContent, contentCapacity, lineNum);
+        res = addToContent(*argP, amContent, contentCapacity, lineNum, context);
         if (res == MEMORY_ALLOCATION_ERROR) {
             insertError((*context).errorList, ERR_MEM_ALLOC, lineNum);
             return MEMORY_ALLOCATION_ERROR;
         } else if (res != TRUE) {
-            insertError((*context).errorList, ERR_MACRO_EXPANSION_FAIL,
-                        lineNum);
+            insertError((*context).errorList, ERR_MACRO_EXPANSION_FAIL, lineNum);
             return FALSE;
         }
 
@@ -248,7 +245,7 @@ int handleMacroSpread(macro *tempMacro, char **argP, char **amContent,
     }
 
     /* Add newline to complete the expansion */
-    res = addToContent("\n", amContent, contentCapacity, lineNum);
+    res = addToContent("\n", amContent, contentCapacity, lineNum, context);
     if (res == MEMORY_ALLOCATION_ERROR) {
         insertError((*context).errorList, ERR_MEM_ALLOC, lineNum);
         return MEMORY_ALLOCATION_ERROR;
@@ -265,8 +262,7 @@ int handleMacroSpread(macro *tempMacro, char **argP, char **amContent,
  *
  * Reads macro from "mcro" to "mcroend" and stores it
  */
-int handleMacroDefinition(char **argP, assemblerContext *context, FILE *srcFile,
-                          int *lineNumP) {
+int handleMacroDefinition(char **argP, assemblerContext *context, FILE *srcFile, int *lineNumP) {
     /* Macro storage variables */
     char *macroLabel;
     char *macroBody;
@@ -282,14 +278,14 @@ int handleMacroDefinition(char **argP, assemblerContext *context, FILE *srcFile,
 
     /* Validate macro name doesn't conflict with reserved words */
     if (!isValidMacroLabel(*argP, context)) {
-        insertError((*context).errorList, ERR_ILLEGAL_MACRO_NAME, lineNum);
+        insertError((*context).errorList, ERR_ILLEGAL_MACRO_NAME, *lineNumP);
         return FALSE;
     }
 
     /* Allocate memory for macro name */
     macroLabel = malloc(strlen(*argP) + 1);
     if (macroLabel == NULL) {
-        insertError((*context).errorList, ERR_MEM_ALLOC, lineNum);
+        insertError((*context).errorList, ERR_MEM_ALLOC, *lineNumP);
         return MEMORY_ALLOCATION_ERROR;
     }
     strcpy(macroLabel, *argP);
@@ -297,7 +293,7 @@ int handleMacroDefinition(char **argP, assemblerContext *context, FILE *srcFile,
     /* Allocate initial buffer for macro body */
     macroBody = calloc(macroBodyCapacity, sizeof(char));
     if (macroBody == NULL) {
-        insertError((*context).errorList, ERR_MEM_ALLOC, lineNum);
+        insertError((*context).errorList, ERR_MEM_ALLOC, *lineNumP);
         free(macroLabel);
         return MEMORY_ALLOCATION_ERROR;
     }
@@ -320,7 +316,7 @@ int handleMacroDefinition(char **argP, assemblerContext *context, FILE *srcFile,
         macroBodyCapacity += LINE_SIZE;
         newBody = realloc(macroBody, macroBodyCapacity);
         if (newBody == NULL) {
-            insertError((*context).errorList, ERR_MEM_ALLOC, lineNum);
+            insertError((*context).errorList, ERR_MEM_ALLOC, *lineNumP);
             free(macroLabel);
             free(macroBody);
             return MEMORY_ALLOCATION_ERROR;
@@ -346,8 +342,8 @@ int handleMacroDefinition(char **argP, assemblerContext *context, FILE *srcFile,
  *
  * Adds text to existing buffer, preserving previous content
  */
-int addToContent(const char *text, char **amContentP, size_t *contentCapacityP,
-                 int lineNum) {
+int addToContent(const char *text, char **amContentP, size_t *contentCapacityP, int lineNum,
+                 assemblerContext *context) {
     /* Expand buffer capacity */
     size_t newCapacity = *contentCapacityP + LINE_SIZE;
     char *newContent = (char *)calloc(newCapacity, sizeof(char));
@@ -377,7 +373,7 @@ int addToContent(const char *text, char **amContentP, size_t *contentCapacityP,
  *
  * Creates .am file with processed content
  */
-int createOutputFile(const char *fileName, const char *amContent) {
+int createOutputFile(const char *fileName, const char *amContent, int lineNum, assemblerContext *context) {
     FILE *amFile;
     char *amFileName;
 
@@ -417,8 +413,7 @@ int createOutputFile(const char *fileName, const char *amContent) {
 int isValidMacroLabel(char *arg, assemblerContext *context) {
     return ((searchOperation(*(context->operationTable), arg) == NULL) &&
             (searchDirective(*(context->directiveTable), arg) == NULL) &&
-            (searchRegister(*(context->registers), arg) == NULL) &&
-            (strlen(arg) <= MACRO_LABEL_BUFF))
+            (searchRegister(*(context->registers), arg) == NULL) && (strlen(arg) <= MACRO_LABEL_BUFF))
                ? TRUE
                : FALSE;
 }

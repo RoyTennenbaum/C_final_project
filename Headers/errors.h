@@ -3,6 +3,8 @@
 
 #include "global.h"
 
+extern int fatalError;
+
 typedef enum {
     ERR_MEM_ALLOC = 1,
     ERR_FILE_OPEN,
@@ -18,7 +20,7 @@ typedef enum {
     ERR_SYMBOL_NOT_FOLLOWED,
     ERR_DUPLICATE_SYMBOL,
     ERR_UNDEFINED_SYMBOL,
-    ERR_SYMBOL_TOO_LONG,
+    ERR_SYMBOL_INVALID_LEN,
     ERR_RESERVED_NAME,
 
     ERR_INVALID_COMMAND,
@@ -44,6 +46,8 @@ typedef enum {
     ERR_MAT_INVALID_REGISTERS,
     ERR_MAT_ADDRESS_ILLEGAL_LEN,
 
+    ERR_INVALID_REGISTER,
+
     ERR_ENTRY_SYMBOL_NOT_FOUND,
     ERR_ENTRY_SYMBOL_DEFINED_EXTERN,
 
@@ -53,6 +57,7 @@ typedef enum {
     ERR_SYNTAX
 } errorType;
 
+void setFatalError(int lineNum, errorType type);
 const char *getErrMessage(errorType type);
 
 #endif
