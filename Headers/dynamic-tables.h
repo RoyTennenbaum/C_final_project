@@ -34,8 +34,9 @@ typedef struct macro_node
 typedef struct binary_word_node
 {
     WordType binaryWord;
-    int address; /* IC or DC */
-    int L;       /* word count index in the same line as the counter's */
+    wordKind kind;
+    int C; /* IC or DC */
+    int L; /* word count index in the same line as the counter's */
     struct binary_word_node *next;
 } binaryWordNode;
 
