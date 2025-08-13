@@ -87,14 +87,14 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
     /* Increase every directive word address by ICF, to separate data from instructions */
     dirPtr = dirList;
     while (dirPtr != NULL) {
-        (*dirPtr).address += (*pICF);
+        (*dirPtr).C += (*pICF);
         prevDirPtr = dirPtr;
         dirPtr = (*dirPtr).next;
     }
 
     /* Store the last directive word address in DCF */
     if (dirList != NULL) {
-        *pDCF = (*prevDirPtr).address + (*prevDirPtr).L;
+        *pDCF = (*prevDirPtr).C + (*prevDirPtr).L;
     } else {
         *pDCF = 0;
     }
