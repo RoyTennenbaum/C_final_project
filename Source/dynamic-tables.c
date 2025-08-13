@@ -125,7 +125,7 @@ void insertMacro(macroTable *mHeadP, char *label, char *body) {
     }
 
     if (success) {
-        printf("Item inserted: label=%s, body=%s\n", newMacro->label, newMacro->body);
+        printf("Macro inserted: label=%s, body:\n%s\n", newMacro->label, newMacro->body);
     }
 }
 
