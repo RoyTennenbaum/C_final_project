@@ -19,7 +19,7 @@ typedef struct
 int preAssembler(char *srcFileName, assemblerContext *context);
 int firstIteration(char *fileName, int *pICF, int *pDCF,
                    binaryWordList *codeImage, assemblerContext *context);
-int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
-                    assemblerContext *context, symbolTable entriesTable);
+int secondIteration(char *fileName, assemblerContext *context, binaryWordList *codeImage,
+                    int ICF, int DCF, symbolTable *entriesTable);
 
 #endif

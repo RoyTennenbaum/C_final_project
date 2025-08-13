@@ -1,6 +1,10 @@
 #ifndef SECOND_ITERATION_H
 #define SECOND_ITERATION_H
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include "main.h"
 #include "word-types.h"
 
@@ -8,6 +12,8 @@
 #define BASE4_ADDRESS_INIT "aaaa"
 #define AER_EXTERNAL_ENCODING 1
 #define AER_RELOCATABLE_ENCODING 2
+#define OBJECT_FILE_LINE_SIZE 12
+#define INITIAL_ADDRESS 100
 
 enum
 {
@@ -27,35 +33,53 @@ enum
     MATRIX_ENCODING
 } opEncodings;
 
-int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
-                    assemblerContext *context, symbolTable *entriesTable);
+int handleEntryLine(char **argP, int lineNum, assemblerContext *context,
+                    symbolTable *entriesTable, char **entriesContentP,
+                    size_t *entriesContentCapacityP);
 
-int handleEntry(char **argP, assemblerContext *context, symbolTable *entriesTable,
-                char **entriesContentP, size_t *entriesContentCapacityP, int lineNum);
+int writeToEntries(symbol *symbolP, char **entriesContentP,
+                   size_t *entriesContentCapacityP, int lineNum, assemblerContext *context);
 
-writeToEntries(symbol *symbolP, char **entriesContentP,
-               size_t *entriesContentCapacityP, int lineNum);
+int handleOperationLine(binaryWordNode **opWordP, char *lineCopy, int lineNum,
+                        assemblerContext *context, symbolTable *entriesTable,
+                        char **externalsContentP, size_t *externalsContentCapacityP);
 
-int handleOperation(binaryWordNode *opWordP, assemblerContext *context, symbolTable *entriesTable, const char *line, char **externalsContentP,
-                    size_t *externalsContentCapacityP, int lineNum);
-
-int handleTwoOperandOpEncoding(binaryWordNode *opFirstWordP,
+int handleTwoOperandOpEncoding(binaryWordNode *opFirstWordP, char *lineCopy,
                                unsigned int srcOperandAddressEncoding,
                                unsigned int destOperandAddressEncoding,
-                               const assemblerContext *context, symbolTable *entriesTable, char *lineCopy,
-                               char **extenalsContentP, size_t *externalsContentCapacityP,
-                               int lineNum);
+                               int lineNum, assemblerContext *context,
+                               symbolTable *entriesTable, char **externalsContentP,
+                               size_t *externalsContentCapacityP);
 
-int encodeOpPayloadWord(const char *label, const assemblerContext *context,
-                        symbolTable *entriesTable, binaryWordNode **currentWordP,
-                        char **extenalsContentP, size_t *extenalsContentCapacityP,
-                        int lineNum);
+int handleOneOperandOpEncoding(binaryWordNode *opFirstWordP, char *lineCopy,
+                               unsigned int destOperandAddressEncoding, int lineNum,
+                               assemblerContext *context, symbolTable *entriesTable,
+                               char **externalsContentP, size_t *externalsContentCapacityP);
 
-int handleExternal(const char *label, symbolTable *entriesTable, binaryWordNode **currentWordP,
-                   char **extenalsContentP, size_t *extenalsContentCapacityP, int lineNum);
+int encodeOpPayloadWord(char *label, int lineNum, assemblerContext *context,
+                        symbolTable *entriesTable, binaryWordNode *currentWordP,
+                        char **externalsContentP, size_t *externalsContentCapacityP);
 
-int writeToExternals(binaryWordNode currentWordP, const char *label, char **extenalsContentP,
-                     size_t *extenalsContentCapacityP, int lineNum);
+int handleExternal(char *label, int lineNum, symbolTable *entriesTable,
+                   binaryWordNode *currentWordP, char **externalsContentP,
+                   size_t *externalsContentCapacityP, assemblerContext *context);
 
-handleData(const char *label, binaryWordNode **currentWordP, symbol tempSymbol, int lineNum);
+int handleData(char *label, symbol tempSymbol, int lineNum,
+               binaryWordNode *currentWordP, assemblerContext *context);
+
+int writeToExternals(binaryWordNode currentWordP, char *label, int lineNum,
+                     char **externalsContentP, size_t *externalsContentCapacityP,
+                     assemblerContext *context);
+
+int createEntriesOutputFile(char *fileName, char *entriesContent, assemblerContext *context);
+
+int createExternalsOutputFile(char *fileName, char *externalsContent, assemblerContext *context);
+
+int createObjectOutputFile(char *fileName, binaryWordList codeImage, int ICF, int DCF,
+                           assemblerContext *context);
+
+char *intToBase4(int integer);
+
+int BinarywordToInt(binaryWordNode word);
+
 #endif
