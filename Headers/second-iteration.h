@@ -12,6 +12,9 @@
 #define BASE4_ADDRESS_INIT "aaaa"
 #define AER_EXTERNAL_ENCODING 1
 #define AER_RELOCATABLE_ENCODING 2
+#define DIRECT_OPCODE_ENCODING 1
+#define MATRIX_OPCODE_ENCODING 2
+
 #define OBJECT_FILE_LINE_SIZE 12
 #define INITIAL_ADDRESS 100
 
@@ -24,14 +27,6 @@ enum
     ENTRY_LINE,
     OPERATION_LINE
 } lineType;
-
-enum
-{
-    UNKNOWN_ENCODING,
-    NON_LABEL_ENCODING,
-    DIRECT_ENCODING,
-    MATRIX_ENCODING
-} opEncodings;
 
 int handleEntryLine(char **argP, int lineNum, assemblerContext *context,
                     symbolTable *entriesTable, char **entriesContentP,

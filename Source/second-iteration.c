@@ -325,20 +325,31 @@ int handleTwoOperandOpEncoding(binaryWordNode *opFirstWordP, char *lineCopy, uns
     binaryWordNode *currentWordP = opFirstWordP->next;
     char *label1;
     char *label2;
+    char *commaPos;
     int res;
 
-    strtok(lineCopy, " \t");
-    label1 = strtok(NULL, "[ , \t");
-    label2 = strtok(NULL, " \t\n");
+    commaPos = strchr(lineCopy, ',');
+    *commaPos = '\0';
 
-    printf("lineCopy: '%s'\n", lineCopy);
+    label1 = strtok(lineCopy, " \t");
+    if (label1 != NULL)
+        label1 = strtok(NULL, " \t,[");
+
+    label2 = commaPos + 1;
+
+    while (isspace(*label2))
+        label2++;
+
+    strtok(label2, " \t[");
+
     printf("label1: '%s'\n", label1);
     printf("label2: '%s'\n", label2);
 
     /* Encode source operand if needed */
-    if (srcOperandAddressEncoding == DIRECT_ENCODING || srcOperandAddressEncoding == MATRIX_ENCODING)
-        res = encodeOpPayloadWord(label1, lineNum, context, entriesTable, currentWordP, externalsContentP,
-                                  externalsContentCapacityP);
+    if (srcOperandAddressEncoding == DIRECT_OPCODE_ENCODING ||
+        srcOperandAddressEncoding == MATRIX_OPCODE_ENCODING)
+        res = encodeOpPayloadWord(label1, lineNum, context, entriesTable, currentWordP,
+                                  externalsContentP, externalsContentCapacityP);
     if (res != TRUE)
     {
         if (res == MEMORY_ALLOCATION_ERROR)
@@ -347,15 +358,16 @@ int handleTwoOperandOpEncoding(binaryWordNode *opFirstWordP, char *lineCopy, uns
     }
 
     /* Advance pointer based on operand type */
-    if (srcOperandAddressEncoding == MATRIX_ENCODING)
+    if (srcOperandAddressEncoding == MATRIX_OPCODE_ENCODING)
         currentWordP = (opFirstWordP->next)->next;
     else
         currentWordP = opFirstWordP->next;
 
     /* Encode destination operand if needed */
-    if (destOperandAddressEncoding == DIRECT_ENCODING || destOperandAddressEncoding == MATRIX_ENCODING)
-        res = encodeOpPayloadWord(label2, lineNum, context, entriesTable, currentWordP, externalsContentP,
-                                  externalsContentCapacityP);
+    if (destOperandAddressEncoding == DIRECT_OPCODE_ENCODING ||
+        destOperandAddressEncoding == MATRIX_OPCODE_ENCODING)
+        res = encodeOpPayloadWord(label2, lineNum, context, entriesTable, currentWordP,
+                                  externalsContentP, externalsContentCapacityP);
     if (res != TRUE)
     {
         if (res == MEMORY_ALLOCATION_ERROR)
@@ -391,7 +403,7 @@ int encodeOpPayloadWord(char *label, int lineNum, assemblerContext *context, sym
     }
     else
     {
-        fprintf(stderr, "Error at line %d: ''%s'' is not defiend", lineNum, label);
+        fprintf(stderr, "Error at line %d: %s is not defiend", lineNum, label);
         return FALSE;
     }
     return TRUE;
@@ -480,9 +492,10 @@ int handleOneOperandOpEncoding(binaryWordNode *opFirstWordP, char *lineCopy, uns
     printf("lineCopy: '%s'\n", lineCopy);
     printf("label: '%s'\n", label);
 
-    if (destOperandAddressEncoding == DIRECT_ENCODING || destOperandAddressEncoding == MATRIX_ENCODING)
-        res = encodeOpPayloadWord(label, lineNum, context, entriesTable, currentWordP, externalsContentP,
-                                  externalsContentCapacityP);
+    if (destOperandAddressEncoding == DIRECT_OPCODE_ENCODING ||
+        destOperandAddressEncoding == MATRIX_OPCODE_ENCODING)
+        res = encodeOpPayloadWord(label, lineNum, context, entriesTable, currentWordP,
+                                  externalsContentP, externalsContentCapacityP);
     if (res != TRUE)
     {
         if (res == MEMORY_ALLOCATION_ERROR)
