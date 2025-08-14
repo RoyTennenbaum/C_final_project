@@ -10,6 +10,7 @@
 
 #define MEMORY_ALLOCATION_ERROR -1
 #define BASE4_ADDRESS_INIT "aaaa"
+#define BASE4_CODE_INIT "aaaaa"
 #define AER_EXTERNAL_ENCODING 1
 #define AER_RELOCATABLE_ENCODING 2
 #define DIRECT_OPCODE_ENCODING 1
@@ -55,7 +56,7 @@ int createExternalsOutputFile(char *fileName, char *externalsContent, assemblerC
 
 int createObjectOutputFile(char *fileName, binaryWordList codeImage, int ICF, int DCF, assemblerContext *context);
 
-char *intToBase4(int integer);
+char *intToBase4(int integer, char type);
 
 int BinarywordToInt(binaryWordNode word);
 

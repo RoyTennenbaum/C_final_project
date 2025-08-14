@@ -334,7 +334,7 @@ int writeToEntries(symbol *symbolP, char **entriesContentP, size_t *entriesConte
     char *newContent;
     char *label = (*symbolP).label;
     int address = (*symbolP).address;
-    char *base4Address = intToBase4(address);
+    char *base4Address = intToBase4(address, 'a');
 
     printf("--- Writing Entry to Buffer ---\n");
     printf("Entry details - Label: '%s', Address: %d\n", label, address);
@@ -371,24 +371,44 @@ int writeToEntries(symbol *symbolP, char **entriesContentP, size_t *entriesConte
 }
 
 /* Convert integer to base-4 representation */
-char *intToBase4(int integer) {
-    static char base4Address[11] = "0000000000";
+char *intToBase4(int integer, char type) {
+    char *base4;
+    size_t length;
     int i = 0;
-    int originalValue = integer;
+    printf("word value before converting to base 4: %d", integer);
 
-    printf("Converting integer %d to base-4...\n", integer);
+    if (type == 'a') {
+        length = strlen(BASE4_ADDRESS_INIT);
+        base4 = calloc(length + 1, sizeof(char));
 
-    /* Reset the string */
-    strcpy(base4Address, "0000000000");
+        if (base4 == NULL)
+            return "FAILED";
 
-    while (integer > 0 && i < 10) {
-        base4Address[i] = '0' + (integer % 4);
-        integer /= 4;
-        i++;
+        strncpy(base4, BASE4_ADDRESS_INIT, length);
+        base4[length] = '\0';
+    } else if (type == 'c') {
+        length = strlen(BASE4_CODE_INIT);
+        base4 = calloc(length + 1, sizeof(char));
+
+        if (base4 == NULL)
+            return "FAILED";
+
+        strncpy(base4, BASE4_CODE_INIT, length);
+        base4[length] = '\0';
+    } else {
+        printf("Error: invalid type '%c'\n", type);
+        return NULL;
     }
 
-    printf("Base-4 representation of %d: '%s'\n", originalValue, base4Address);
-    return base4Address;
+    i = length - 1;
+    while (integer && i >= 0) {
+        base4[i] += integer % 4;
+        integer /= 4;
+        i--;
+    }
+
+    printf("word value after converting to base 4: %s", base4);
+    return base4;
 }
 
 /* Process operation line and encode binary words */
@@ -709,7 +729,7 @@ int writeToExternals(binaryWordNode currentWordP, char *label, int lineNum, char
     size_t newCapacity;
     char *newContent;
     int address = currentWordP.C + currentWordP.L;
-    char *base4Address = intToBase4(address);
+    char *base4Address = intToBase4(address, 'a');
 
     printf("--- Writing External Reference ---\n");
     printf("External reference - Label: '%s', Address: %d\n", label, address);
@@ -934,18 +954,18 @@ int createObjectOutputFile(char *fileName, binaryWordList codeImage, int ICF, in
 
     /* Write header with ICF and DCF */
     printf("Writing object file header...\n");
-    sprintf(buffer, "%s\t%s\n", intToBase4(ICF), intToBase4(DCF));
+    sprintf(buffer, "%s\t%s\n", intToBase4(ICF, 'a'), intToBase4(DCF, 'a'));
     fputs(buffer, objectFile);
-    printf("Header written: ICF=%s, DCF=%s\n", intToBase4(ICF), intToBase4(DCF));
+    printf("Header written: ICF=%s, DCF=%s\n", intToBase4(ICF, 'a'), intToBase4(DCF, 'a'));
 
     /* Write each binary word */
     printf("Writing binary words to object file...\n");
     while (i < ICF + DCF && currentWordP != NULL) {
         wordValue = BinarywordToInt(*currentWordP);
         printf("Word %d - Address: %d, Kind: %d, Value: %d, Base4: %s\n", i, INITIAL_ADDRESS + i, currentWordP->kind,
-               wordValue, intToBase4(wordValue));
+               wordValue, intToBase4(wordValue, 'c'));
 
-        sprintf(buffer, "%s\t%s\n", intToBase4(INITIAL_ADDRESS + i), intToBase4(wordValue));
+        sprintf(buffer, "%s\t%s\n", intToBase4(INITIAL_ADDRESS + i, 'a'), intToBase4(wordValue, 'c'));
         fputs(buffer, objectFile);
 
         currentWordP = currentWordP->next;
@@ -973,7 +993,7 @@ int BinarywordToInt(binaryWordNode word) {
         printf("Directive word - Data bits: %u, Result: %u\n", word.binaryWord.dir.data_bits, merge);
         break;
 
-    case OPFIRST:
+    case OP_FIRST:
         merge = (word.binaryWord.opFirst.opcode_bits << 6) | (word.binaryWord.opFirst.src_op_bits << 4) |
                 (word.binaryWord.opFirst.dest_op_bits << 2) | (word.binaryWord.opFirst.aer_bits << 0);
         printf("Operation first word - Opcode: %u, Src: %u, Dest: %u, AER: %u, Result: %u\n",
@@ -987,7 +1007,7 @@ int BinarywordToInt(binaryWordNode word) {
                word.binaryWord.payload.aer_bits, merge);
         break;
 
-    case REGPAIR:
+    case REG_PAIR:
         merge = (word.binaryWord.regPair.more_padding << 9) | (word.binaryWord.regPair.reg1_bits << 6) |
                 (word.binaryWord.regPair.padding << 5) | (word.binaryWord.regPair.reg2_bits << 2) |
                 (word.binaryWord.regPair.aer_bits << 0);

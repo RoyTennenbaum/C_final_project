@@ -8,7 +8,7 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
     /* File handler */
     FILE *fp;
     /* Counters */
-    int IC = 0, DC = 0;
+    int IC = 100, DC = 0;
     /* Error handling vars */
     int lineNum = 0, errorFlag = FALSE;
     /* Parsing vars */
@@ -17,7 +17,7 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
     const directive *dir;
     const operation *op;
     /* List vars */
-    binaryWordNode *dirPtr, *prevDirPtr, *opPtr;
+    binaryWordNode *dirPtr, *opPtr;
     binaryWordList dirList = NULL, opList = NULL;
 
     /* Allocate memory for source filename with .am extension */
@@ -83,20 +83,13 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
         return FALSE;
 
     *pICF = IC;
+    *pDCF = DC;
 
     /* Increase every directive word address by ICF, to separate data from instructions */
     dirPtr = dirList;
     while (dirPtr != NULL) {
         (*dirPtr).C += (*pICF);
-        prevDirPtr = dirPtr;
         dirPtr = (*dirPtr).next;
-    }
-
-    /* Store the last directive word address in DCF */
-    if (dirList != NULL) {
-        *pDCF = (*prevDirPtr).C + (*prevDirPtr).L;
-    } else {
-        *pDCF = 0;
     }
 
     /* append dirList to opList to get the full code image */
