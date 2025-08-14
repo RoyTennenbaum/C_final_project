@@ -47,6 +47,8 @@ const char *getErrMessage(errorType type) {
         return "Too many operands";
     case ERR_MISSING_OPERANDS:
         return "Missing operands";
+    case ERR_INVALID_OPERAND:
+        return "Invalid operand";
 
     case ERR_INVALID_ADDRESSING_METHOD:
         return "Invalid addressing method";

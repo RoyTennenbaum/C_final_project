@@ -140,6 +140,19 @@ void encodeOpFirstWord(const operation *op, const char *operand1, const char *op
             insertError((*context).errorList, ERR_INVALID_ADDRESSING_METHOD, lineNum);
         }
 
+        /* handle special invalid addressing method cases (table in page 35 of the course pdf) */
+        if ((*pMethod1 == IMMEDIATE || *pMethod1 == REGISTER) && (*op).number == LEA) {
+            *errorFlag = TRUE;
+            insertError((*context).errorList, ERR_INVALID_OPERAND, lineNum);
+            return;
+        }
+        if (*pMethod2 == IMMEDIATE &&
+            ((*op).number == MOV || (*op).number == ADD || (*op).number == SUB || (*op).number == LEA)) {
+            *errorFlag = TRUE;
+            insertError((*context).errorList, ERR_INVALID_OPERAND, lineNum);
+            return;
+        }
+
         word.opFirst.src_op_bits = *pMethod1;
         word.opFirst.dest_op_bits = *pMethod2;
     } else if (operand1) {
@@ -150,6 +163,15 @@ void encodeOpFirstWord(const operation *op, const char *operand1, const char *op
         if (*pMethod2 == INVALID) {
             *errorFlag = TRUE;
             insertError((*context).errorList, ERR_INVALID_ADDRESSING_METHOD, lineNum);
+        }
+
+        /* handle special invalid addressing method cases (table in page 35 of the course pdf) */
+        if (*pMethod2 == IMMEDIATE &&
+            ((*op).number == CLR || (*op).number == NOT || (*op).number == INC || (*op).number == DEC ||
+             (*op).number == JMP || (*op).number == BNE || (*op).number == JSR || (*op).number == RED)) {
+            *errorFlag = TRUE;
+            insertError((*context).errorList, ERR_INVALID_OPERAND, lineNum);
+            return;
         }
 
         /* If only one operand, it's the destination operand */
