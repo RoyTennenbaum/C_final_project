@@ -54,7 +54,7 @@ void insertMacro(macroTable *mHeadP, char *label, char *body);
 macro *searchMacro(macroTable mHead, char *label);
 void displayMacro(macroTable mHead); /* for debugging */
 void freeMacroTable(macroTable mHead);
-void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int lineNum);
+void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int kind, int lineNum);
 void freeBinaryWordList(binaryWordList bHead);
 void insertError(errorList *eHeadP, errorType type, int lineNum);
 void displayErrors(errorList eHead);

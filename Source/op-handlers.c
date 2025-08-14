@@ -164,7 +164,7 @@ void encodeOpFirstWord(const operation *op, const char *operand1, const char *op
     /* aer taken care of in second iteration. In first iteration we set them explicitly to zero */
     word.opFirst.aer_bits = 0;
 
-    insertBinaryWord(opList, *IC, *L, word, lineNum);
+    insertBinaryWord(opList, *IC, *L, word, OP_FIRST, lineNum);
     if (fatalError)
         return;
     else
@@ -198,7 +198,7 @@ void encodeTwoRegisters(const char *operand1, const char *operand2, int *L, int 
         word.regPair.reg2_bits = (*reg2).number;
     }
 
-    insertBinaryWord(opList, *IC, *L, word, lineNum);
+    insertBinaryWord(opList, *IC, *L, word, REG_PAIR, lineNum);
     if (fatalError)
         return;
     else
@@ -226,7 +226,7 @@ void encodeOperand(const char *operand, addressingType method, int *L, int *IC, 
             /* aer taken care of in second iteration. In first iteration we set them explicitly to zero */
             word.payload.aer_bits = 0;
 
-            insertBinaryWord(opList, *IC, *L, word, lineNum);
+            insertBinaryWord(opList, *IC, *L, word, PAYLOAD, lineNum);
             if (fatalError)
                 return;
             else
@@ -236,7 +236,7 @@ void encodeOperand(const char *operand, addressingType method, int *L, int *IC, 
         /* Symbol address is taken care of only in second iteration, so we store a zeroed payloadWord */
         word.payload.payload_bits = 0;
         word.payload.aer_bits = 0;
-        insertBinaryWord(opList, *IC, *L, word, lineNum);
+        insertBinaryWord(opList, *IC, *L, word, PAYLOAD, lineNum);
         if (fatalError)
             return;
         else
@@ -248,7 +248,7 @@ void encodeOperand(const char *operand, addressingType method, int *L, int *IC, 
         /* Mat symbol address is taken care of only in second iteration, so we store a zeroed payloadWord */
         word.payload.payload_bits = 0;
         word.payload.aer_bits = 0;
-        insertBinaryWord(opList, *IC, *L, word, lineNum);
+        insertBinaryWord(opList, *IC, *L, word, PAYLOAD, lineNum);
         if (fatalError)
             return;
         else

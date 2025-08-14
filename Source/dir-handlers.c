@@ -74,7 +74,7 @@ void encodeDataDir(const directive *dir, int *DC, binaryWordList *dirList, int l
         } else {
             word.dir.data_bits = (unsigned int)num;
 
-            insertBinaryWord(dirList, *DC, L, word, lineNum);
+            insertBinaryWord(dirList, *DC, L, word, DIR, lineNum);
             if (fatalError)
                 return;
             else
@@ -127,7 +127,7 @@ void encodeStrDir(const directive *dir, int *DC, binaryWordList *dirList, int li
 
         word.dir.data_bits = (unsigned int)((unsigned char)param[i]);
 
-        insertBinaryWord(dirList, *DC, L, word, lineNum);
+        insertBinaryWord(dirList, *DC, L, word, DIR, lineNum);
         if (fatalError)
             return;
         else
@@ -137,7 +137,7 @@ void encodeStrDir(const directive *dir, int *DC, binaryWordList *dirList, int li
     /* Add '\0' to the code image to mark the end of the string */
     memset(&word, 0, sizeof(word));
     word.dir.data_bits = 0;
-    insertBinaryWord(dirList, *DC, L, word, lineNum);
+    insertBinaryWord(dirList, *DC, L, word, DIR, lineNum);
     if (fatalError)
         return;
     else
@@ -202,7 +202,7 @@ void encodeMatDir(const directive *dir, int *DC, binaryWordList *dirList, int li
 
         word.dir.data_bits = (unsigned int)value;
 
-        insertBinaryWord(dirList, *DC, L, word, lineNum);
+        insertBinaryWord(dirList, *DC, L, word, DIR, lineNum);
         if (fatalError)
             return;
         else
@@ -213,7 +213,7 @@ void encodeMatDir(const directive *dir, int *DC, binaryWordList *dirList, int li
     while (L < matDim) {
         memset(&word, 0, sizeof(word));
         word.dir.data_bits = 0;
-        insertBinaryWord(dirList, *DC, L, word, lineNum);
+        insertBinaryWord(dirList, *DC, L, word, DIR, lineNum);
         if (fatalError)
             return;
         else

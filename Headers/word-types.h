@@ -2,22 +2,14 @@
 #define WORD_TYPES_H
 
 /* Properties to differentiate between different word categories */
-typedef enum
-{
-    DIR,
-    OPFIRST,
-    PAYLOAD,
-    REGPAIR
-} wordKind;
+typedef enum { DIR, OP_FIRST, PAYLOAD, REG_PAIR } wordKind;
 
-typedef struct
-{
+typedef struct {
     unsigned int data_bits : 10;
 } directiveWord;
 
 /* Format of the first word of an operation sentence */
-typedef struct
-{
+typedef struct {
     unsigned int aer_bits : 2;
     unsigned int dest_op_bits : 2;
     unsigned int src_op_bits : 2;
@@ -29,8 +21,7 @@ typedef struct
  * - Direct addressing: payload stores the address of a label.
  * - Matrix first word: payload stores the address of a matrix label.
  */
-typedef struct
-{
+typedef struct {
     unsigned int aer_bits : 2;
     unsigned int payload_bits : 8;
 } PayloadWord;
@@ -39,8 +30,7 @@ typedef struct
  * - Matrix second word: reg1 represents matrix rows, reg2 for columns.
  * - Register addressing: reg1 is a source register and res2 is a destination register.
  */
-typedef struct
-{
+typedef struct {
     unsigned int aer_bits : 2;
     unsigned int reg2_bits : 3;
     unsigned int padding : 1;
@@ -48,8 +38,7 @@ typedef struct
     unsigned int more_padding : 1;
 } registerPairWord;
 
-typedef union
-{
+typedef union {
     directiveWord dir;
     opFirstWord opFirst;
     PayloadWord payload;

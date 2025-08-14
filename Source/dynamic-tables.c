@@ -173,7 +173,7 @@ void freeMacroTable(macroTable mHead) {
     }
 }
 
-void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int lineNum) {
+void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int kind, int lineNum) {
     binaryWordNode *ptr = *bHeadP;
     binaryWordNode *prev = NULL;
     binaryWordNode *newNode;
@@ -194,6 +194,7 @@ void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int l
 
     /* Insert all node data in the allocated space */
     (*newNode).binaryWord = word;
+    (*newNode).kind = kind;
     (*newNode).C = C;
     (*newNode).L = L;
     (*newNode).next = NULL;
@@ -206,7 +207,8 @@ void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int l
     }
 
     /* for debugging */
-    printf("Word inserted: word=%u, C=%d, L=%d\n", *(unsigned int *)&(*newNode).binaryWord, (*newNode).C, (*newNode).L);
+    printf("Word inserted: word=%u, kind=%d, C=%d, L=%d\n", *(unsigned int *)&(*newNode).binaryWord, (*newNode).kind,
+           (*newNode).C, (*newNode).L);
 }
 
 void freeBinaryWordList(binaryWordList bHead) {
