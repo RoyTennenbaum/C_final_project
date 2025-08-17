@@ -37,9 +37,21 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
     }
 
     while (fgets(line, LINE_SIZE, fp) != NULL) {
+        if (fatalError)
+            return FALSE;
         lineNum++;
         printf("\nLINE #%d\n", lineNum);
         newSymbolName = NULL;
+
+        if (IC + DC > ASSEMBLER_MAX_MEMORY) {
+            setFatalError(lineNum, ERR_MEM_ALLOC);
+            return FALSE;
+        }
+
+        if (strlen(line) >= LINE_SIZE - 1) {
+            insertError((*context).errorList, ERR_LINE_TOO_LONG, lineNum);
+            errorFlag = TRUE;
+        }
 
         /* Get the first word in the line */
         arg = strtok(line, " \t\n");
@@ -79,8 +91,11 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
     }
 
     /* If program had errors, stop running now */
-    if (errorFlag)
+    if (errorFlag) {
+        fclose(fp);
+        free(srcFileName);
         return FALSE;
+    }
 
     *pICF = IC;
     *pDCF = DC;
@@ -111,6 +126,7 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
     adjustDataSymbolAddresses(*(*context).symbolTable, pICF);
 
     fclose(fp);
+    free(srcFileName);
     return TRUE;
 }
 
