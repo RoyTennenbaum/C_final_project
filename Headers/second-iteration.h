@@ -58,6 +58,6 @@ int createObjectOutputFile(char *fileName, binaryWordList codeImage, int ICF, in
 
 char *intToBase4(int integer, char type);
 
-int BinarywordToInt(binaryWordNode word);
+unsigned int BinarywordToInt(binaryWordNode word);
 
 #endif

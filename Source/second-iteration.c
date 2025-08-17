@@ -5,8 +5,7 @@
 #include "../Headers/second-iteration.h"
 
 int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage, assemblerContext *context,
-                    symbolTable *entriesTable)
-{
+                    symbolTable *entriesTable) {
     int state;
     char line[LINE_SIZE] = {'\0'};
     char *lineCopy;
@@ -26,8 +25,7 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
 
     srcFileName = malloc(strlen(fileName) + 4);
 
-    if (srcFileName == NULL)
-    {
+    if (srcFileName == NULL) {
         return FALSE;
     }
 
@@ -36,52 +34,42 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
 
     /* Process each line of source file */
     srcFile = fopen(srcFileName, "r");
-    if (srcFile == NULL)
-    {
+    if (srcFile == NULL) {
         free(srcFileName);
         return FALSE;
     }
 
-    while (fgets(line, LINE_SIZE, srcFile) != NULL)
-    {
+    while (fgets(line, LINE_SIZE, srcFile) != NULL) {
         lineNum++;
+        printf("LINE #%d", lineNum);
 
         state = UNKNOWN_LINE_TYPE;
 
         arg = strtok(line, ":\n");
 
-        if (arg == NULL)
-        {
+        if (arg == NULL) {
             state = EMPTY_LINE;
-        }
-        else if (arg[0] == ';')
-        {
+        } else if (arg[0] == ';') {
             state = COMMENT_LINE;
         }
 
         /* Check if line starts with symbol definition */
-        if (state == UNKNOWN_LINE_TYPE && searchSymbol(*(context->symbolTable), arg) != NULL)
-        {
+        if (state == UNKNOWN_LINE_TYPE && searchSymbol(*(context->symbolTable), arg) != NULL) {
             arg = strtok(NULL, "\n");
-            if (arg != NULL)
-            {
+            if (arg != NULL) {
                 while (isspace((unsigned char)*arg))
                     arg++;
                 lineCopy = (char *)malloc(strlen(arg) + 1);
-                if (lineCopy == NULL)
-                {
+                if (lineCopy == NULL) {
                     setFatalError(lineNum, ERR_MEM_ALLOC);
                     fclose(srcFile);
                     free(srcFileName);
                     return FALSE;
                 }
                 strcpy(lineCopy, arg);
-            }
-            else
-            {
+            } else {
                 lineCopy = (char *)malloc(1);
-                if (lineCopy == NULL)
-                {
+                if (lineCopy == NULL) {
                     setFatalError(lineNum, ERR_MEM_ALLOC);
                     fclose(srcFile);
                     free(srcFileName);
@@ -89,12 +77,9 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
                 }
                 lineCopy[0] = '\0';
             }
-        }
-        else if (state == UNKNOWN_LINE_TYPE)
-        {
+        } else if (state == UNKNOWN_LINE_TYPE) {
             lineCopy = (char *)malloc(strlen(line) + 1);
-            if (lineCopy == NULL)
-            {
+            if (lineCopy == NULL) {
                 setFatalError(lineNum, ERR_MEM_ALLOC);
                 fclose(srcFile);
                 free(srcFileName);
@@ -103,30 +88,22 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
             strcpy(lineCopy, line);
         }
 
-        if (state == UNKNOWN_LINE_TYPE)
-        {
+        if (state == UNKNOWN_LINE_TYPE) {
             isDir = strtok(lineCopy, " \t\n");
 
-            if ((tempDirective = searchDirective(*(context->directiveTable), isDir)) != NULL)
-            {
-                if ((*tempDirective).type != ENTRY)
-                {
+            if ((tempDirective = searchDirective(*(context->directiveTable), isDir)) != NULL) {
+                if ((*tempDirective).type != ENTRY) {
                     state = NON_ENTRY_DIRECTIVE_LINE;
-                }
-                else
-                {
+                } else {
                     state = ENTRY_LINE;
                 }
-            }
-            else
-            {
+            } else {
                 state = OPERATION_LINE;
             }
         }
 
         /* Process line based on type */
-        switch (state)
-        {
+        switch (state) {
         case EMPTY_LINE:
             if (lineCopy != NULL)
                 free(lineCopy);
@@ -144,53 +121,38 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
 
         case ENTRY_LINE:
             res = handleEntryLine(&arg, lineNum, context, entriesTable, &entriesContent, &entriesContentCapacity);
-            if (res != TRUE)
-            {
-                if (res == MEMORY_ALLOCATION_ERROR)
-                {
+            if (res != TRUE) {
+                if (res == MEMORY_ALLOCATION_ERROR) {
                     if (lineCopy != NULL)
                         free(lineCopy);
                     fclose(srcFile);
                     free(srcFileName);
                     return FALSE;
-                }
-                else
-                {
+                } else {
                     errorFlag = TRUE;
                 }
-            }
-            else
-            {
+            } else {
             }
             break;
 
         case OPERATION_LINE:
-            if (currentOpWordP != NULL)
-            {
-            }
-            else
-            {
+            if (currentOpWordP != NULL) {
+            } else {
             }
 
             res = handleOperationLine(&currentOpWordP, arg, lineNum, context, entriesTable, &externalsContent,
                                       &externalsContentCapacity);
-            if (res != TRUE)
-            {
-                if (res == MEMORY_ALLOCATION_ERROR)
-                {
+            if (res != TRUE) {
+                if (res == MEMORY_ALLOCATION_ERROR) {
                     if (lineCopy != NULL)
                         free(lineCopy);
                     fclose(srcFile);
                     free(srcFileName);
                     return FALSE;
-                }
-                else
-                {
+                } else {
                     errorFlag = TRUE;
                 }
-            }
-            else
-            {
+            } else {
             }
             break;
 
@@ -199,82 +161,56 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
             break;
         }
 
-        if (lineCopy != NULL)
-        {
+        if (lineCopy != NULL) {
             free(lineCopy);
             lineCopy = NULL;
         }
     }
 
     /* Generate output files if no errors occurred */
-    if (errorFlag == FALSE)
-    {
+    if (errorFlag == FALSE) {
 
         res = createObjectOutputFile(fileName, *codeImage, ICF, DCF, context);
-        if (res != TRUE)
-        {
-            if (res == MEMORY_ALLOCATION_ERROR)
-            {
+        if (res != TRUE) {
+            if (res == MEMORY_ALLOCATION_ERROR) {
                 fclose(srcFile);
                 free(srcFileName);
                 return FALSE;
-            }
-            else
-            {
+            } else {
                 errorFlag = TRUE;
             }
-        }
-        else
-        {
+        } else {
         }
     }
 
-    if (errorFlag == FALSE && entriesContentCapacity > 0)
-    {
+    if (errorFlag == FALSE && entriesContentCapacity > 0) {
         res = createEntriesOutputFile(fileName, entriesContent, context);
-        if (res != TRUE)
-        {
-            if (res == MEMORY_ALLOCATION_ERROR)
-            {
+        if (res != TRUE) {
+            if (res == MEMORY_ALLOCATION_ERROR) {
                 fclose(srcFile);
                 free(srcFileName);
                 return FALSE;
-            }
-            else
-            {
+            } else {
                 errorFlag = TRUE;
             }
+        } else {
         }
-        else
-        {
-        }
-    }
-    else if (entriesContentCapacity == 0)
-    {
+    } else if (entriesContentCapacity == 0) {
     }
 
-    if (errorFlag == FALSE && externalsContentCapacity > 0)
-    {
+    if (errorFlag == FALSE && externalsContentCapacity > 0) {
         res = createExternalsOutputFile(fileName, externalsContent, context);
-        if (res != TRUE)
-        {
-            if (res == MEMORY_ALLOCATION_ERROR)
-            {
+        if (res != TRUE) {
+            if (res == MEMORY_ALLOCATION_ERROR) {
                 fclose(srcFile);
                 free(srcFileName);
                 return FALSE;
-            }
-            else
-            {
+            } else {
                 errorFlag = TRUE;
             }
+        } else {
         }
-        else
-        {
-        }
-    }
-    else if (externalsContentCapacity == 0)
-    {
+    } else if (externalsContentCapacity == 0) {
     }
 
     fclose(srcFile);
@@ -285,34 +221,25 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
 
 /* Handle .entry directive processing */
 int handleEntryLine(char **argP, int lineNum, assemblerContext *context, symbolTable *entriesTable,
-                    char **entriesContentP, size_t *entriesContentCapacityP)
-{
+                    char **entriesContentP, size_t *entriesContentCapacityP) {
     symbol *tempSymbol;
 
     *argP = strtok(NULL, " \t");
-    if (*argP != NULL)
-    {
-    }
-    else
-    {
+    if (*argP != NULL) {
+    } else {
 
         return FALSE;
     }
 
-    if ((tempSymbol = searchSymbol(*(context->symbolTable), *argP)) != NULL)
-    {
+    if ((tempSymbol = searchSymbol(*(context->symbolTable), *argP)) != NULL) {
 
-        if ((*tempSymbol).type == TYPE_EXTERNAL)
-        {
+        if ((*tempSymbol).type == TYPE_EXTERNAL) {
 
             return FALSE;
+        } else {
+            insertSymbol(entriesTable, tempSymbol->label, tempSymbol->address, TYPE_ENTRY, lineNum);
         }
-        else
-        {
-        }
-    }
-    else
-    {
+    } else {
         return FALSE;
     }
     return TRUE;
@@ -320,8 +247,7 @@ int handleEntryLine(char **argP, int lineNum, assemblerContext *context, symbolT
 
 /* Write symbol to entries content buffer */
 int writeToEntries(symbol *symbolP, char **entriesContentP, size_t *entriesContentCapacityP, int lineNum,
-                   assemblerContext *context)
-{
+                   assemblerContext *context) {
     size_t newCapacity;
     char *newContent;
     char *label = (*symbolP).label;
@@ -332,18 +258,14 @@ int writeToEntries(symbol *symbolP, char **entriesContentP, size_t *entriesConte
 
     newContent = (char *)malloc(newCapacity);
 
-    if (newContent == NULL)
-    {
+    if (newContent == NULL) {
         return MEMORY_ALLOCATION_ERROR;
     }
 
-    if (*entriesContentP != NULL)
-    {
+    if (*entriesContentP != NULL) {
         strcpy(newContent, *entriesContentP);
         free(*entriesContentP);
-    }
-    else
-    {
+    } else {
         newContent[0] = '\0';
     }
 
@@ -359,14 +281,12 @@ int writeToEntries(symbol *symbolP, char **entriesContentP, size_t *entriesConte
 }
 
 /* Convert integer to base-4 representation */
-char *intToBase4(int integer, char type)
-{
+char *intToBase4(int integer, char type) {
     char *base4;
     size_t length;
     int i = 0;
 
-    if (type == 'a')
-    {
+    if (type == 'a') {
         length = strlen(BASE4_ADDRESS_INIT);
         base4 = calloc(length + 1, sizeof(char));
 
@@ -375,9 +295,7 @@ char *intToBase4(int integer, char type)
 
         strncpy(base4, BASE4_ADDRESS_INIT, length);
         base4[length] = '\0';
-    }
-    else if (type == 'c')
-    {
+    } else if (type == 'c') {
         length = strlen(BASE4_CODE_INIT);
         base4 = calloc(length + 1, sizeof(char));
 
@@ -386,15 +304,12 @@ char *intToBase4(int integer, char type)
 
         strncpy(base4, BASE4_CODE_INIT, length);
         base4[length] = '\0';
-    }
-    else
-    {
+    } else {
         return "FAILED";
     }
 
     i = length - 1;
-    while (integer && i >= 0)
-    {
+    while (integer && i >= 0) {
         base4[i] += integer % 4;
         integer /= 4;
         i--;
@@ -405,8 +320,7 @@ char *intToBase4(int integer, char type)
 
 /* Process operation line and encode binary words */
 int handleOperationLine(binaryWordNode **opWordP, char *lineCopy, int lineNum, assemblerContext *context,
-                        symbolTable *entriesTable, char **externalsContentP, size_t *externalsContentCapacityP)
-{
+                        symbolTable *entriesTable, char **externalsContentP, size_t *externalsContentCapacityP) {
     WordType tempFirstOpWord = (*opWordP)->binaryWord;
     unsigned int opCodeEncoding = tempFirstOpWord.opFirst.opcode_bits;
     unsigned int srcOperandAddressEncoding = tempFirstOpWord.opFirst.src_op_bits;
@@ -414,8 +328,7 @@ int handleOperationLine(binaryWordNode **opWordP, char *lineCopy, int lineNum, a
     int res;
 
     /* Route to appropriate handler based on operation type */
-    switch (opCodeEncoding)
-    {
+    switch (opCodeEncoding) {
     case MOV:
     case CMP:
     case ADD:
@@ -451,8 +364,7 @@ int handleOperationLine(binaryWordNode **opWordP, char *lineCopy, int lineNum, a
         break;
     }
 
-    if (res != TRUE)
-    {
+    if (res != TRUE) {
         if (res == MEMORY_ALLOCATION_ERROR)
             return MEMORY_ALLOCATION_ERROR;
         else
@@ -465,16 +377,14 @@ int handleOperationLine(binaryWordNode **opWordP, char *lineCopy, int lineNum, a
 /* Handle two-operand instruction encoding */
 int handleTwoOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigned int srcOperandAddressEncoding,
                                unsigned int destOperandAddressEncoding, int lineNum, assemblerContext *context,
-                               symbolTable *entriesTable, char **externalsContentP, size_t *externalsContentCapacityP)
-{
+                               symbolTable *entriesTable, char **externalsContentP, size_t *externalsContentCapacityP) {
     char *label1;
     char *label2;
     char *commaPos;
     int res;
 
     commaPos = strchr(lineCopy, ',');
-    if (commaPos == NULL)
-    {
+    if (commaPos == NULL) {
 
         return FALSE;
     }
@@ -493,19 +403,16 @@ int handleTwoOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigne
     strtok(label2, " \t[");
 
     /* Advance to next word after operation word */
-    if ((*opWordP)->next != NULL)
-    {
+    if ((*opWordP)->next != NULL) {
         *opWordP = (*opWordP)->next;
     }
 
     /* Encode source operand if needed */
-    if (srcOperandAddressEncoding == DIRECT_OPCODE_ENCODING || srcOperandAddressEncoding == MATRIX_OPCODE_ENCODING)
-    {
+    if (srcOperandAddressEncoding == DIRECT_OPCODE_ENCODING || srcOperandAddressEncoding == MATRIX_OPCODE_ENCODING) {
 
         res = encodeOpPayloadWord(label1, lineNum, context, entriesTable, *opWordP, externalsContentP,
                                   externalsContentCapacityP);
-        if (res != TRUE)
-        {
+        if (res != TRUE) {
             if (res == MEMORY_ALLOCATION_ERROR)
                 return MEMORY_ALLOCATION_ERROR;
             return FALSE;
@@ -513,28 +420,21 @@ int handleTwoOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigne
     }
 
     /* Advance pointer based on source operand type */
-    if (srcOperandAddressEncoding == MATRIX_OPCODE_ENCODING)
-    {
-        if ((*opWordP)->next && (*opWordP)->next->next)
-        {
+    if (srcOperandAddressEncoding == MATRIX_OPCODE_ENCODING) {
+        if ((*opWordP)->next && (*opWordP)->next->next) {
             *opWordP = (*opWordP)->next->next;
         }
-    }
-    else
-    {
-        if ((*opWordP)->next)
-        {
+    } else {
+        if ((*opWordP)->next) {
             *opWordP = (*opWordP)->next;
         }
     }
 
     /* Encode destination operand if needed */
-    if (destOperandAddressEncoding == DIRECT_OPCODE_ENCODING || destOperandAddressEncoding == MATRIX_OPCODE_ENCODING)
-    {
+    if (destOperandAddressEncoding == DIRECT_OPCODE_ENCODING || destOperandAddressEncoding == MATRIX_OPCODE_ENCODING) {
         res = encodeOpPayloadWord(label2, lineNum, context, entriesTable, *opWordP, externalsContentP,
                                   externalsContentCapacityP);
-        if (res != TRUE)
-        {
+        if (res != TRUE) {
             if (res == MEMORY_ALLOCATION_ERROR)
                 return MEMORY_ALLOCATION_ERROR;
             return FALSE;
@@ -542,21 +442,14 @@ int handleTwoOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigne
     }
 
     /* Advance pointer based on destination operand type */
-    if (destOperandAddressEncoding == MATRIX_OPCODE_ENCODING)
-    {
-        if ((*opWordP)->next && (*opWordP)->next->next)
-        {
+    if (destOperandAddressEncoding == MATRIX_OPCODE_ENCODING) {
+        if ((*opWordP)->next && (*opWordP)->next->next) {
             *opWordP = (*opWordP)->next->next;
         }
-    }
-    else if (srcOperandAddressEncoding == REGISTER_OPCODE_ENCODING &&
-             destOperandAddressEncoding == REGISTER_OPCODE_ENCODING)
-    {
-    }
-    else
-    {
-        if ((*opWordP)->next)
-        {
+    } else if (srcOperandAddressEncoding == REGISTER_OPCODE_ENCODING &&
+               destOperandAddressEncoding == REGISTER_OPCODE_ENCODING) {
+    } else {
+        if ((*opWordP)->next) {
             *opWordP = (*opWordP)->next;
         }
     }
@@ -566,14 +459,11 @@ int handleTwoOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigne
 
 /* Encode payload word based on symbol type */
 int encodeOpPayloadWord(char *label, int lineNum, assemblerContext *context, symbolTable *entriesTable,
-                        binaryWordNode *currentWordP, char **externalsContentP, size_t *externalsContentCapacityP)
-{
+                        binaryWordNode *currentWordP, char **externalsContentP, size_t *externalsContentCapacityP) {
     symbol *tempSymbol;
 
-    if ((tempSymbol = searchSymbol(*(context->symbolTable), label)) != NULL)
-    {
-        switch ((*tempSymbol).type)
-        {
+    if ((tempSymbol = searchSymbol(*(context->symbolTable), label)) != NULL) {
+        switch ((*tempSymbol).type) {
         case TYPE_EXTERNAL:
 
             return handleExternal(label, lineNum, entriesTable, currentWordP, externalsContentP,
@@ -590,36 +480,29 @@ int encodeOpPayloadWord(char *label, int lineNum, assemblerContext *context, sym
         default:
             return FALSE;
         }
-    }
-    else
-    {
+    } else {
         return FALSE;
     }
 }
 
 /* Handle external symbol reference */
 int handleExternal(char *label, int lineNum, symbolTable *entriesTable, binaryWordNode *currentWordP,
-                   char **externalsContentP, size_t *externalsContentCapacityP, assemblerContext *context)
-{
+                   char **externalsContentP, size_t *externalsContentCapacityP, assemblerContext *context) {
     int res;
     symbol *tempEntry;
 
-    if ((tempEntry = searchSymbol(*entriesTable, label)) != NULL)
-    {
+    if ((tempEntry = searchSymbol(*entriesTable, label)) != NULL) {
         currentWordP->binaryWord.payload.payload_bits = (*tempEntry).address;
         currentWordP->binaryWord.payload.aer_bits = AER_EXTERNAL_ENCODING;
 
         res = writeToExternals(*currentWordP, label, lineNum, externalsContentP, externalsContentCapacityP, context);
-        if (res != TRUE)
-        {
+        if (res != TRUE) {
             if (res == MEMORY_ALLOCATION_ERROR)
                 return MEMORY_ALLOCATION_ERROR;
             else
                 return FALSE;
         }
-    }
-    else
-    {
+    } else {
         return FALSE;
     }
     return TRUE;
@@ -627,8 +510,7 @@ int handleExternal(char *label, int lineNum, symbolTable *entriesTable, binaryWo
 
 /* Write external reference to output buffer */
 int writeToExternals(binaryWordNode currentWordP, char *label, int lineNum, char **externalsContentP,
-                     size_t *externalsContentCapacityP, assemblerContext *context)
-{
+                     size_t *externalsContentCapacityP, assemblerContext *context) {
     size_t newCapacity;
     char *newContent;
     int address = currentWordP.C + currentWordP.L;
@@ -637,18 +519,14 @@ int writeToExternals(binaryWordNode currentWordP, char *label, int lineNum, char
     newCapacity = *externalsContentCapacityP + strlen(label) + strlen(base4Address) + 2;
     newContent = (char *)malloc(newCapacity);
 
-    if (newContent == NULL)
-    {
+    if (newContent == NULL) {
         return MEMORY_ALLOCATION_ERROR;
     }
 
-    if (*externalsContentP != NULL)
-    {
+    if (*externalsContentP != NULL) {
         strcpy(newContent, *externalsContentP);
         free(*externalsContentP);
-    }
-    else
-    {
+    } else {
         newContent[0] = '\0';
     }
 
@@ -664,8 +542,7 @@ int writeToExternals(binaryWordNode currentWordP, char *label, int lineNum, char
 }
 
 /* Handle data symbol encoding */
-int handleData(char *label, symbol tempSymbol, int lineNum, binaryWordNode *currentWordP, assemblerContext *context)
-{
+int handleData(char *label, symbol tempSymbol, int lineNum, binaryWordNode *currentWordP, assemblerContext *context) {
 
     currentWordP->binaryWord.payload.payload_bits = tempSymbol.address;
     currentWordP->binaryWord.payload.aer_bits = AER_RELOCATABLE_ENCODING;
@@ -676,26 +553,22 @@ int handleData(char *label, symbol tempSymbol, int lineNum, binaryWordNode *curr
 /* Handle single-operand instruction encoding */
 int handleOneOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigned int destOperandAddressEncoding,
                                int lineNum, assemblerContext *context, symbolTable *entriesTable,
-                               char **externalsContentP, size_t *externalsContentCapacityP)
-{
+                               char **externalsContentP, size_t *externalsContentCapacityP) {
     int res;
     char *label;
 
     /* Advance to next word after operation word */
-    if ((*opWordP)->next != NULL)
-    {
+    if ((*opWordP)->next != NULL) {
         *opWordP = (*opWordP)->next;
     }
 
     strtok(lineCopy, " \t");
     label = strtok(NULL, "[\n");
 
-    if (destOperandAddressEncoding == DIRECT_OPCODE_ENCODING || destOperandAddressEncoding == MATRIX_OPCODE_ENCODING)
-    {
+    if (destOperandAddressEncoding == DIRECT_OPCODE_ENCODING || destOperandAddressEncoding == MATRIX_OPCODE_ENCODING) {
         res = encodeOpPayloadWord(label, lineNum, context, entriesTable, *opWordP, externalsContentP,
                                   externalsContentCapacityP);
-        if (res != TRUE)
-        {
+        if (res != TRUE) {
             if (res == MEMORY_ALLOCATION_ERROR)
                 return MEMORY_ALLOCATION_ERROR;
             return FALSE;
@@ -703,18 +576,13 @@ int handleOneOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigne
     }
 
     /* Advance pointer based on destination operand type */
-    if (destOperandAddressEncoding == MATRIX_OPCODE_ENCODING)
-    {
+    if (destOperandAddressEncoding == MATRIX_OPCODE_ENCODING) {
 
-        if ((*opWordP)->next && (*opWordP)->next->next)
-        {
+        if ((*opWordP)->next && (*opWordP)->next->next) {
             *opWordP = (*opWordP)->next->next;
         }
-    }
-    else
-    {
-        if ((*opWordP)->next)
-        {
+    } else {
+        if ((*opWordP)->next) {
             *opWordP = (*opWordP)->next;
         }
     }
@@ -723,15 +591,13 @@ int handleOneOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigne
 }
 
 /* Generate .ent output file */
-int createEntriesOutputFile(char *fileName, char *entriesContent, assemblerContext *context)
-{
+int createEntriesOutputFile(char *fileName, char *entriesContent, assemblerContext *context) {
     FILE *entriesFile;
     char *entriesFileName;
 
     /* Create output filename */
     entriesFileName = malloc(strlen(fileName) + 5);
-    if (entriesFileName == NULL)
-    {
+    if (entriesFileName == NULL) {
         return MEMORY_ALLOCATION_ERROR;
     }
 
@@ -740,8 +606,7 @@ int createEntriesOutputFile(char *fileName, char *entriesContent, assemblerConte
 
     /* Write entries to file */
     entriesFile = fopen(entriesFileName, "w");
-    if (entriesFile == NULL)
-    {
+    if (entriesFile == NULL) {
         free(entriesFileName);
         return FALSE;
     }
@@ -755,15 +620,13 @@ int createEntriesOutputFile(char *fileName, char *entriesContent, assemblerConte
 }
 
 /* Generate .ext output file */
-int createExternalsOutputFile(char *fileName, char *externalsContent, assemblerContext *context)
-{
+int createExternalsOutputFile(char *fileName, char *externalsContent, assemblerContext *context) {
     FILE *externalsFile;
     char *externalsFileName;
 
     /* Create output filename */
     externalsFileName = malloc(strlen(fileName) + 5);
-    if (externalsFileName == NULL)
-    {
+    if (externalsFileName == NULL) {
         return MEMORY_ALLOCATION_ERROR;
     }
 
@@ -772,8 +635,7 @@ int createExternalsOutputFile(char *fileName, char *externalsContent, assemblerC
 
     /* Write externals to file */
     externalsFile = fopen(externalsFileName, "w");
-    if (externalsFile == NULL)
-    {
+    if (externalsFile == NULL) {
         free(externalsFileName);
         return FALSE;
     }
@@ -787,19 +649,18 @@ int createExternalsOutputFile(char *fileName, char *externalsContent, assemblerC
 }
 
 /* Generate .obj output file with binary image */
-int createObjectOutputFile(char *fileName, binaryWordList codeImage, int ICF, int DCF, assemblerContext *context)
-{
+int createObjectOutputFile(char *fileName, binaryWordList codeImage, int ICF, int DCF, assemblerContext *context) {
     FILE *objectFile;
     char *objectFileName;
     char buffer[OBJECT_FILE_LINE_SIZE] = {'\0'};
+    char *icfStr = intToBase4(ICF, 'a'), *dcfStr = intToBase4(DCF, 'a'), *addressStr, *wordStr;
     binaryWordNode *currentWordP = codeImage;
     int i = 0;
     int wordValue;
 
     /* Create output filename */
     objectFileName = malloc(strlen(fileName) + 5);
-    if (objectFileName == NULL)
-    {
+    if (objectFileName == NULL) {
         return MEMORY_ALLOCATION_ERROR;
     }
 
@@ -808,25 +669,41 @@ int createObjectOutputFile(char *fileName, binaryWordList codeImage, int ICF, in
 
     /* Write object file header and data */
     objectFile = fopen(objectFileName, "w");
-    if (objectFile == NULL)
-    {
+    if (objectFile == NULL) {
         free(objectFileName);
         return FALSE;
     }
 
     /* Write header with ICF and DCF */
+    if (icfStr == NULL || dcfStr == NULL) {
+        fclose(objectFile);
+        free(objectFileName);
+        return MEMORY_ALLOCATION_ERROR;
+    }
 
-    sprintf(buffer, "%s\t%s\n", intToBase4(ICF, 'a'), intToBase4(DCF, 'a'));
+    sprintf(buffer, "%s\t%s\n", icfStr, dcfStr);
     fputs(buffer, objectFile);
 
-    /* Write each binary word */
+    free(icfStr);
+    free(dcfStr);
 
-    while (i < ICF + DCF && currentWordP != NULL)
-    {
+    /* Write each binary word */
+    while (i < ICF + DCF && currentWordP != NULL) {
         wordValue = BinarywordToInt(*currentWordP);
 
-        sprintf(buffer, "%s\t%s\n", intToBase4(INITIAL_ADDRESS + i, 'a'), intToBase4(wordValue, 'c'));
+        addressStr = intToBase4(INITIAL_ADDRESS + i, 'a');
+        wordStr = intToBase4(wordValue, 'c');
+        if (addressStr == NULL || wordStr == NULL) {
+            fclose(objectFile);
+            free(objectFileName);
+            return MEMORY_ALLOCATION_ERROR;
+        }
+
+        sprintf(buffer, "%s\t%s\n", addressStr, wordStr);
         fputs(buffer, objectFile);
+
+        free(addressStr);
+        free(wordStr);
 
         currentWordP = currentWordP->next;
         i++;
@@ -838,13 +715,11 @@ int createObjectOutputFile(char *fileName, binaryWordList codeImage, int ICF, in
 }
 
 /* Convert binary word structure to integer */
-unsigned int BinarywordToInt(binaryWordNode word)
-{
+unsigned int BinarywordToInt(binaryWordNode word) {
     unsigned int merge;
 
     /* Merge bit fields based on word type */
-    switch (word.kind)
-    {
+    switch (word.kind) {
     case DIR:
         merge = word.binaryWord.dir.data_bits;
         break;
