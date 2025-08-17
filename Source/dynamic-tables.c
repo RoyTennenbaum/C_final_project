@@ -42,7 +42,8 @@ void insertSymbol(symbolTable *sHeadP, char *label, int address, symbolType type
     }
 
     if (success) {
-        printf("Item inserted: label=%s, address=%d\n", (*newSymbol).label, (*newSymbol).address);
+        printf("Symbol inserted: label=%s, address=%d, type=%d\n", (*newSymbol).label, (*newSymbol).address,
+               (*newSymbol).type);
     }
     displaySymbol(*sHeadP);
 }
