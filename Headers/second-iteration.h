@@ -40,7 +40,8 @@ int handleOneOperandOpEncoding(binaryWordNode **opFirstWordP, char *lineCopy, un
                                char **externalsContentP, size_t *externalsContentCapacityP);
 
 int encodeOpPayloadWord(char *label, int lineNum, assemblerContext *context, symbolTable *entriesTable,
-                        binaryWordNode *currentWordP, char **externalsContentP, size_t *externalsContentCapacityP);
+                        binaryWordNode *currentWordP, char **externalsContentP, size_t *externalsContentCapacityP,
+                        unsigned int operandAddressEncoding);
 
 int handleExternal(char *label, int lineNum, symbolTable *entriesTable, binaryWordNode *currentWordP,
                    char **externalsContentP, size_t *externalsContentCapacityP, assemblerContext *context);

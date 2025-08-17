@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
     assemblerContext context;
     binaryWordList codeImage;
-    symbolTable entriesTable;
+    symbolTable entriesTable = NULL;
     static int ICF, DCF;
     int i;
     int complete;

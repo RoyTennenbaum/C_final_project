@@ -33,7 +33,9 @@ void handleDirective(const directive *dir, int *DC, char *symbolName, binaryWord
         break;
 
     case EXTERN:
-        insertSymbol((*context).symbolTable, symbolName, 0, TYPE_EXTERNAL, lineNum);
+        if (symbolName != NULL) {
+            insertSymbol((*context).symbolTable, symbolName, 0, TYPE_EXTERNAL, lineNum);
+        }
         break;
 
     default:

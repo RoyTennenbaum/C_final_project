@@ -2,7 +2,7 @@
 #define GLOBAL_H
 
 enum { FALSE, TRUE };
-#define LINE_SIZE 83
+#define LINE_SIZE 82
 
 #define SIGNED_8_BIT_MIN -128
 #define SIGNED_8_BIT_MAX 127

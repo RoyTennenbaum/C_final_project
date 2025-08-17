@@ -39,6 +39,8 @@ const char *getErrMessage(errorType type) {
         return "Invalid symbol length (1-30 chars)";
     case ERR_RESERVED_NAME:
         return "Symbol or identifier uses reserved name";
+    case ERR_INVALID_SYMBOL_TYPE:
+        return "Invalid type of symbol for this addressing method";
 
     case ERR_INVALID_COMMAND:
         return "Command does not exist";

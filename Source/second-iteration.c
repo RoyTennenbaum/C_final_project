@@ -16,7 +16,7 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
     const directive *tempDirective;
     int lineNum = 0;
     int errorFlag = FALSE;
-    char *entriesContent;
+    char *entriesContent = "";
     size_t entriesContentCapacity = 0;
     char *externalsContent;
     size_t externalsContentCapacity = 0;
@@ -41,7 +41,8 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
 
     while (fgets(line, LINE_SIZE, srcFile) != NULL) {
         lineNum++;
-        printf("LINE #%d", lineNum);
+        printf("LINE #%d\n", lineNum);
+        lineCopy = NULL;
 
         state = UNKNOWN_LINE_TYPE;
 
@@ -131,7 +132,6 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
                 } else {
                     errorFlag = TRUE;
                 }
-            } else {
             }
             break;
 
@@ -215,7 +215,9 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
 
     fclose(srcFile);
     free(srcFileName);
-
+    if (entriesContent != NULL) {
+        free(entriesContent);
+    }
     return errorFlag ? FALSE : TRUE;
 }
 
@@ -223,21 +225,21 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
 int handleEntryLine(char **argP, int lineNum, assemblerContext *context, symbolTable *entriesTable,
                     char **entriesContentP, size_t *entriesContentCapacityP) {
     symbol *tempSymbol;
+    printf("PRINT ALL VARS: %s, %s, %d", *argP, *entriesContentP, (int)*entriesContentCapacityP);
 
     *argP = strtok(NULL, " \t");
-    if (*argP != NULL) {
-    } else {
-
+    if (*argP == NULL) {
         return FALSE;
     }
 
     if ((tempSymbol = searchSymbol(*(context->symbolTable), *argP)) != NULL) {
 
         if ((*tempSymbol).type == TYPE_EXTERNAL) {
-
             return FALSE;
         } else {
-            insertSymbol(entriesTable, tempSymbol->label, tempSymbol->address, TYPE_ENTRY, lineNum);
+            printf("PRINT BEFORE INSERT SYMBOL: %s, %d\n", *argP, tempSymbol->address);
+            insertSymbol(entriesTable, *argP, tempSymbol->address, TYPE_ENTRY, lineNum);
+            writeToEntries(tempSymbol, entriesContentP, entriesContentCapacityP, lineNum, context);
         }
     } else {
         return FALSE;
@@ -255,8 +257,9 @@ int writeToEntries(symbol *symbolP, char **entriesContentP, size_t *entriesConte
     char *base4Address = intToBase4(address, 'a');
 
     newCapacity = *entriesContentCapacityP + strlen(label) + strlen(base4Address) + 2;
+    printf("BADIDAAAAAAAAAAAAA: %d", (int)newCapacity);
 
-    newContent = (char *)malloc(newCapacity);
+    newContent = calloc(newCapacity, sizeof(char));
 
     if (newContent == NULL) {
         return MEMORY_ALLOCATION_ERROR;
@@ -265,8 +268,6 @@ int writeToEntries(symbol *symbolP, char **entriesContentP, size_t *entriesConte
     if (*entriesContentP != NULL) {
         strcpy(newContent, *entriesContentP);
         free(*entriesContentP);
-    } else {
-        newContent[0] = '\0';
     }
 
     *entriesContentP = newContent;
@@ -277,6 +278,7 @@ int writeToEntries(symbol *symbolP, char **entriesContentP, size_t *entriesConte
     strcat(*entriesContentP, base4Address);
     strcat(*entriesContentP, "\n");
 
+    free(base4Address);
     return TRUE;
 }
 
@@ -291,7 +293,7 @@ char *intToBase4(int integer, char type) {
         base4 = calloc(length + 1, sizeof(char));
 
         if (base4 == NULL)
-            return "FAILED";
+            return NULL;
 
         strncpy(base4, BASE4_ADDRESS_INIT, length);
         base4[length] = '\0';
@@ -300,12 +302,12 @@ char *intToBase4(int integer, char type) {
         base4 = calloc(length + 1, sizeof(char));
 
         if (base4 == NULL)
-            return "FAILED";
+            return NULL;
 
         strncpy(base4, BASE4_CODE_INIT, length);
         base4[length] = '\0';
     } else {
-        return "FAILED";
+        return NULL;
     }
 
     i = length - 1;
@@ -411,7 +413,7 @@ int handleTwoOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigne
     if (srcOperandAddressEncoding == DIRECT_OPCODE_ENCODING || srcOperandAddressEncoding == MATRIX_OPCODE_ENCODING) {
 
         res = encodeOpPayloadWord(label1, lineNum, context, entriesTable, *opWordP, externalsContentP,
-                                  externalsContentCapacityP);
+                                  externalsContentCapacityP, srcOperandAddressEncoding);
         if (res != TRUE) {
             if (res == MEMORY_ALLOCATION_ERROR)
                 return MEMORY_ALLOCATION_ERROR;
@@ -433,7 +435,7 @@ int handleTwoOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigne
     /* Encode destination operand if needed */
     if (destOperandAddressEncoding == DIRECT_OPCODE_ENCODING || destOperandAddressEncoding == MATRIX_OPCODE_ENCODING) {
         res = encodeOpPayloadWord(label2, lineNum, context, entriesTable, *opWordP, externalsContentP,
-                                  externalsContentCapacityP);
+                                  externalsContentCapacityP, destOperandAddressEncoding);
         if (res != TRUE) {
             if (res == MEMORY_ALLOCATION_ERROR)
                 return MEMORY_ALLOCATION_ERROR;
@@ -459,28 +461,30 @@ int handleTwoOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigne
 
 /* Encode payload word based on symbol type */
 int encodeOpPayloadWord(char *label, int lineNum, assemblerContext *context, symbolTable *entriesTable,
-                        binaryWordNode *currentWordP, char **externalsContentP, size_t *externalsContentCapacityP) {
+                        binaryWordNode *currentWordP, char **externalsContentP, size_t *externalsContentCapacityP,
+                        unsigned int operandAddressEncoding) {
     symbol *tempSymbol;
 
     if ((tempSymbol = searchSymbol(*(context->symbolTable), label)) != NULL) {
         switch ((*tempSymbol).type) {
         case TYPE_EXTERNAL:
-
             return handleExternal(label, lineNum, entriesTable, currentWordP, externalsContentP,
                                   externalsContentCapacityP, context);
 
         case TYPE_DATA:
-
             return handleData(label, *tempSymbol, lineNum, currentWordP, context);
 
         case TYPE_CODE:
-
-            return handleData(label, *tempSymbol, lineNum, currentWordP, context);
+            if (operandAddressEncoding == DIRECT_OPCODE_ENCODING) {
+                insertError((*context).errorList, ERR_INVALID_SYMBOL_TYPE, lineNum);
+            } else
+                return handleData(label, *tempSymbol, lineNum, currentWordP, context);
 
         default:
             return FALSE;
         }
     } else {
+        insertError((*context).errorList, ERR_UNDEFINED_SYMBOL, lineNum);
         return FALSE;
     }
 }
@@ -538,6 +542,7 @@ int writeToExternals(binaryWordNode currentWordP, char *label, int lineNum, char
     strcat(*externalsContentP, base4Address);
     strcat(*externalsContentP, "\n");
 
+    free(base4Address);
     return TRUE;
 }
 
@@ -567,7 +572,7 @@ int handleOneOperandOpEncoding(binaryWordNode **opWordP, char *lineCopy, unsigne
 
     if (destOperandAddressEncoding == DIRECT_OPCODE_ENCODING || destOperandAddressEncoding == MATRIX_OPCODE_ENCODING) {
         res = encodeOpPayloadWord(label, lineNum, context, entriesTable, *opWordP, externalsContentP,
-                                  externalsContentCapacityP);
+                                  externalsContentCapacityP, destOperandAddressEncoding);
         if (res != TRUE) {
             if (res == MEMORY_ALLOCATION_ERROR)
                 return MEMORY_ALLOCATION_ERROR;
