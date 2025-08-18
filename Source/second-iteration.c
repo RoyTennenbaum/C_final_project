@@ -301,24 +301,12 @@ void handleTwoOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
                             assemblerContext *context, const symbolTable *entriesTable) {
     char *label1;
     char *label2;
-    char *commaPos;
 
-    /* skip operation*/
     strtok(line, " \t");
-    line = strtok(NULL, " \t");
-    printf("LINE AFTER OP REMOVED: %s\n", line);
-
-    /*swap comma seperator with '\0' for parsing*/
-    commaPos = strchr(line, ',');
-    if (!commaPos) {
-        printf("COMMA ERROR\n");
-        return;
-    }
-    *commaPos = '\0';
-
-    label1 = strtok(line, " \t[");
-    label2 = commaPos + 1;
-    strtok(label2, " \t[");
+    label1 = strtok(NULL, ",");
+    label2 = strtok(NULL, " \t");
+    strtok(label1, "[,");
+    strtok(label2, "[");
     printf("LABEL1: %s\n", label1);
     printf("LABEL2: %s\n", label2);
 
@@ -387,7 +375,8 @@ void handleOneOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
                             int *errorFlagP, assemblerContext *context, const symbolTable *entriesTable) {
     char *label;
 
-    label = strtok(line, " \t");
+    strtok(line, " \t");
+    label = strtok(NULL, " \t");
     strtok(label, " \t[");
 
     /*advace to the first payload word*/
@@ -437,23 +426,10 @@ void encodeOpPayloadWord(const char *label, binaryWordNode *currentWordP, char *
             break;
 
         case TYPE_DATA:
+        case TYPE_CODE:
             handleRelocatable(*tempSymbol, currentWordP);
             if (fatalError)
                 return;
-            break;
-
-        case TYPE_CODE:
-            if (addressMethod == DIRECT_ADDRESS_ENCODING) {
-                insertError((*context).errorList, ERR_INVALID_SYMBOL_TYPE, lineNum);
-                *errorFlagP = TRUE;
-                return;
-            } else {
-                handleExternal(label, currentWordP, externalsContentP, externalsContentCapacityP, lineNum, errorFlagP,
-                               context, entriesTable);
-                if (fatalError)
-                    return;
-            }
-
             break;
 
         default:
