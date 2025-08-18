@@ -1,64 +1,72 @@
 #ifndef SECOND_ITERATION_H
 #define SECOND_ITERATION_H
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "main.h"
 #include "word-types.h"
 
-#define MEMORY_ALLOCATION_ERROR -1
-#define BASE4_ADDRESS_INIT "aaaa"
-#define BASE4_CODE_INIT "aaaaa"
+#define BASE4_ADDRESS_PADDING 4
+#define BASE4_CODE_PADDING 5
 #define AER_EXTERNAL_ENCODING 1
 #define AER_RELOCATABLE_ENCODING 2
-#define DIRECT_OPCODE_ENCODING 1
-#define MATRIX_OPCODE_ENCODING 2
+#define DIRECT_ADDRESS_ENCODING 1
+#define MATRIX_ADDRESS_ENCODING 2
 #define REGISTER_OPCODE_ENCODING 3
-
 #define OBJECT_FILE_LINE_SIZE 12
 #define INITIAL_ADDRESS 100
 
 enum { UNKNOWN_LINE_TYPE, EMPTY_LINE, COMMENT_LINE, NON_ENTRY_DIRECTIVE_LINE, ENTRY_LINE, OPERATION_LINE } lineType;
 
-int handleEntryLine(char **argP, int lineNum, assemblerContext *context, symbolTable *entriesTable,
-                    char **entriesContentP, size_t *entriesContentCapacityP);
+enum { ADDRESS_REP, CODE_REP, COUNTER_REP } reps;
 
-int writeToEntries(symbol *symbolP, char **entriesContentP, size_t *entriesContentCapacityP, int lineNum,
-                   assemblerContext *context);
+/* Entry handling functions */
+void handleEntryLine(char *line, char **entriesContentP, size_t *entriesContentCapacityP, symbolTable *entriesTable,
+                     const int lineNum, int *errorFlagP, assemblerContext *context);
 
-int handleOperationLine(binaryWordNode **opWordP, char *lineCopy, int lineNum, assemblerContext *context,
-                        symbolTable *entriesTable, char **externalsContentP, size_t *externalsContentCapacityP);
+void writeToEntries(const symbol symbol, char **entriesContentP, size_t *entriesContentCapacityP, const int lineNum,
+                    int *errorFlagP, assemblerContext *context);
 
-int handleTwoOperandOpEncoding(binaryWordNode **opFirstWordP, char *lineCopy, unsigned int srcOperandAddressEncoding,
-                               unsigned int destOperandAddressEncoding, int lineNum, assemblerContext *context,
-                               symbolTable *entriesTable, char **externalsContentP, size_t *externalsContentCapacityP);
+/* Operation handling functions */
+void handleOperationLine(char *line, binaryWordNode **opWordP, char **externalsContentP,
+                         size_t *externalsContentCapacityP, const int lineNum, int *errorFlagP,
+                         assemblerContext *context, const symbolTable *entriesTable);
 
-int handleOneOperandOpEncoding(binaryWordNode **opFirstWordP, char *lineCopy, unsigned int destOperandAddressEncoding,
-                               int lineNum, assemblerContext *context, symbolTable *entriesTable,
-                               char **externalsContentP, size_t *externalsContentCapacityP);
+void handleTwoOperandOpCode(char *line, binaryWordNode **opWordP, char **externalsContentP,
+                            size_t *externalsContentCapacityP, const unsigned srcAddressMethod,
+                            const unsigned destAddressMethod, const int lineNum, int *errorFlagP,
+                            assemblerContext *context, const symbolTable *entriesTable);
 
-int encodeOpPayloadWord(char *label, int lineNum, assemblerContext *context, symbolTable *entriesTable,
-                        binaryWordNode *currentWordP, char **externalsContentP, size_t *externalsContentCapacityP,
-                        unsigned int operandAddressEncoding);
+void handleOneOperandOpCode(char *line, binaryWordNode **opWordP, char **externalsContentP,
+                            size_t *externalsContentCapacityP, const unsigned destAddressMethod, const int lineNum,
+                            int *errorFlagP, assemblerContext *context, const symbolTable *entriesTable);
 
-int handleExternal(char *label, int lineNum, symbolTable *entriesTable, binaryWordNode *currentWordP,
-                   char **externalsContentP, size_t *externalsContentCapacityP, assemblerContext *context);
+/* Payload and symbol encoding functions */
+void encodeOpPayloadWord(const char *label, binaryWordNode *currentWordP, char **externalsContentP,
+                         size_t *externalsContentCapacityP, const unsigned addressMethod, const int lineNum,
+                         int *errorFlagP, assemblerContext *context, const symbolTable *entriesTable);
 
-int handleData(char *label, symbol tempSymbol, int lineNum, binaryWordNode *currentWordP, assemblerContext *context);
+void handleExternal(const char *label, binaryWordNode *currentWordP, char **externalsContentP,
+                    size_t *externalsContentCapacityP, const int lineNum, int *errorFlagP, assemblerContext *context,
+                    const symbolTable *entriesTable);
 
-int writeToExternals(binaryWordNode currentWordP, char *label, int lineNum, char **externalsContentP,
-                     size_t *externalsContentCapacityP, assemblerContext *context);
+void writeToExternals(const char *label, const binaryWordNode *currentWordP, char **externalsContentP,
+                      size_t *externalsContentCapacityP, const int lineNum, int *errorFlagP, assemblerContext *context);
 
-int createEntriesOutputFile(char *fileName, char *entriesContent, assemblerContext *context);
+void handleRelocatable(symbol symbol, binaryWordNode *currentWordP);
 
-int createExternalsOutputFile(char *fileName, char *externalsContent, assemblerContext *context);
+/* Output file creation functions */
+void createObjectOutputFile(const char *fileName, const binaryWordList *codeImage, const int ICF, const int DCF);
 
-int createObjectOutputFile(char *fileName, binaryWordList codeImage, int ICF, int DCF, assemblerContext *context);
+void createEntriesOutputFile(const char *fileName, const char *entriesContent);
 
-char *intToBase4(int integer, char type);
+void createExternalsOutputFile(const char *fileName, const char *externalsContent);
 
-unsigned int BinarywordToInt(binaryWordNode word);
+/* Utility functions */
+char *intToBase4(int integer, int rep, int lineNum);
 
+unsigned int BinaryWordToInt(binaryWordNode word);
 #endif
