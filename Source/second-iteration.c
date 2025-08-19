@@ -410,6 +410,7 @@ void encodeOpPayloadWord(const char *label, binaryWordNode *currentWordP, char *
             break;
 
         default:
+            setFatalError(lineNum, ERR_INTERNAL);
             break;
         }
     }
