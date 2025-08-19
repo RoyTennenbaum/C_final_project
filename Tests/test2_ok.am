@@ -1,0 +1,17 @@
+; Factorial initialization macro
+
+; addition macro
+
+; wrong factorial calculation:
+        mov #4, N
+        mov #1, RESULT
+
+N: .data 0
+RESULT: .data 0
+TEMP: .data 0
+
+
+
+; Return to factorial check
+        jmp RESULT
+.entry RESULT
