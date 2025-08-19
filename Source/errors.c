@@ -6,7 +6,8 @@ int fatalError = FALSE;
 
 void setFatalError(int lineNum, errorType type) {
     fatalError = TRUE;
-    printf("[XX] Line %-4d | FATAL ERROR: %s\n", lineNum, getErrMessage(type));
+    printf("Line %-4d | FATAL ERROR: %s\n", lineNum, getErrMessage(type));
+    printf("Program will completely terminate...\n");
 }
 
 const char *getErrMessage(errorType type) {

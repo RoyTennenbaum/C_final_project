@@ -29,9 +29,16 @@ int main(int argc, char *argv[]) {
     context.registers = &regs;
     context.errorList = &errors;
 
+    printf("Welcome to Roy Tennenbaum's & Bar Zagorin's assembler project!\n");
+    printf("To start:\n");
+    printf("1. Please open the terminal and write \"make\".\n");
+    printf("2. Write your commands, try with our test files or bring you own tests.\n");
+    printf("Example: ./assembler Tests/test1_ok\n");
+
     for (i = 1; i < argc; i++) {
         fileSuccess = FALSE;
 
+        printf("\n\nStarting assembly - test file #%d\n\n", i);
         if (preAssembler(argv[i], &context)) {
             if (firstIteration(argv[i], &ICF, &DCF, &codeImage, &context)) {
                 if (secondIteration(argv[i], ICF, DCF, &codeImage, &context, &entriesTable))
@@ -39,7 +46,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        if (fileSuccess == FALSE) {
+        if (fileSuccess == FALSE && fatalError == FALSE) {
             displayErrors(errors);
             mainSuccess = 1;
         }

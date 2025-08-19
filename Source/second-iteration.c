@@ -113,15 +113,14 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
             return FALSE;
             break;
         }
-        printf("\n");
     }
 
     if (errorFlag == FALSE) {
         printf("\n========================================"
                "\n"
-               "Generating output files"
+               "Success! Generating output files..."
                "\n"
-               "========================================\n");
+               "========================================\n\n");
         createObjectOutputFile(fileName, codeImage, ICF, DCF);
         if (fatalError) {
             fclose(srcFile);
@@ -594,10 +593,9 @@ void createObjectOutputFile(const char *fileName, const binaryWordList *codeImag
 
         currentWordP = currentWordP->next;
         i++;
-        printf("========================================");
     }
 
-    printf("Object file generated successfuly\n\n");
+    printf("Object file generated successfully!\n\n");
 
     fclose(objectFile);
     free(objectFileName);
@@ -630,7 +628,7 @@ void createEntriesOutputFile(const char *fileName, const char *entriesContent) {
 
     fputs(entriesContent, entriesFile);
 
-    printf("Entries file generated successfuly\n\n");
+    printf("Entries file generated successfully!\n\n");
 
     fclose(entriesFile);
     free(entriesFileName);
@@ -658,7 +656,7 @@ void createExternalsOutputFile(const char *fileName, const char *externalsConten
 
     fputs(externalsContent, externalsFile);
 
-    printf("Externals file generated successfuly\n\n");
+    printf("Externals file generated successfully!\n\n");
 
     fclose(externalsFile);
     free(externalsFileName);
@@ -773,7 +771,6 @@ char *intToBase4(unsigned int integer, int rep, int lineNum) {
         j--;
     }
     result[length] = 0;
-    printf("\n");
 
     return result;
 }
