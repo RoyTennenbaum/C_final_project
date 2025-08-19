@@ -6,9 +6,11 @@
 extern int fatalError;
 
 typedef enum {
+    /* ERR_MEM_ALLOC and ERR_INTERNAL are fatal errors - stop running immediately! */
     ERR_MEM_ALLOC = 1,
+    ERR_INTERNAL,
+
     ERR_FILE_OPEN,
-    ERR_IO,
 
     ERR_LINE_TOO_LONG,
     ERR_UNKNOWN_LINE_TYPE,
@@ -51,12 +53,7 @@ typedef enum {
     ERR_INVALID_REGISTER,
 
     ERR_ENTRY_SYMBOL_NOT_FOUND,
-    ERR_ENTRY_SYMBOL_DEFINED_EXTERN,
-
-    ERR_CODE_IMAGE_OVERFLOW,
-    ERR_ALIGNMENT,
-    ERR_INTERNAL,
-    ERR_SYNTAX
+    ERR_ENTRY_SYMBOL_DEFINED_EXTERN
 } errorType;
 
 void setFatalError(int lineNum, errorType type);

@@ -6,6 +6,17 @@
 #include "dynamic-tables.h"
 #include "static-tables.h"
 
+/* enum to conclude iterations over files (pre, first and second) */
+enum { ERROR_FOUND = 0, NO_ERROR_FOUND };
+
+#define SYMBOL_MAX_LENGTH 30
+#define LINE_SIZE 82
+
+#define SIGNED_8_BIT_MIN -128
+#define SIGNED_8_BIT_MAX 127
+#define SIGNED_10_BIT_MIN -512
+#define SIGNED_10_BIT_MAX 511
+
 typedef struct {
     symbolTable *symbolTable;
     macroTable *macroTable;

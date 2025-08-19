@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "../Headers/errors.h"
 
+/* fatal error is an error that causes the program to terminate immediately */
 int fatalError = FALSE;
 
 void setFatalError(int lineNum, errorType type) {
@@ -10,12 +11,14 @@ void setFatalError(int lineNum, errorType type) {
 
 const char *getErrMessage(errorType type) {
     switch (type) {
+    /* ERR_MEM_ALLOC and ERR_INTERNAL are fatal errors - stop running immediately! */
     case ERR_MEM_ALLOC:
         return "Failed to allocate memory";
+    case ERR_INTERNAL:
+        return "Internal assembler error";
+
     case ERR_FILE_OPEN:
         return "Cannot open file";
-    case ERR_IO:
-        return "Generic IO error";
 
     case ERR_LINE_TOO_LONG:
         return "Line too long";
@@ -38,7 +41,7 @@ const char *getErrMessage(errorType type) {
     case ERR_SYMBOL_INVALID_LEN:
         return "Invalid symbol length (1-30 chars)";
     case ERR_RESERVED_NAME:
-        return "Symbol or identifier uses reserved name";
+        return "Symbol uses reserved name";
     case ERR_INVALID_SYMBOL_TYPE:
         return "Invalid type of symbol for this addressing method";
 
@@ -91,14 +94,6 @@ const char *getErrMessage(errorType type) {
     case ERR_ENTRY_SYMBOL_DEFINED_EXTERN:
         return "'.entry' operand symbol was defined as external";
 
-    case ERR_CODE_IMAGE_OVERFLOW:
-        return "Code image overflow";
-    case ERR_ALIGNMENT:
-        return "Memory alignment error";
-    case ERR_INTERNAL:
-        return "Internal assembler error";
-    case ERR_SYNTAX:
-        return "Syntax error";
     default:
         return "Unknown error";
     }

@@ -5,26 +5,25 @@
 #include "../Headers/first-iteration.h"
 
 int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeImage, assemblerContext *context) {
-    /* File handler */
     FILE *fp;
     /* Counters */
     int IC = 100, DC = 0;
     /* Error handling vars */
     int lineNum = 0, errorFlag = FALSE;
-    /* Parsing vars */
+    /* Parsing helpers */
     char line[LINE_SIZE];
     char *arg, *newSymbolName, *colonPos;
     const directive *dir;
     const operation *op;
-    /* List vars */
+    /* List handling helpers */
     binaryWordNode *dirPtr, *opPtr;
     binaryWordList dirList = NULL, opList = NULL;
 
-    /* Allocate memory for source filename with .am extension */
+    /* Allocate memory for source file name with .am extension */
     char *srcFileName = malloc(strlen(fileName) + 4);
     if (srcFileName == NULL) {
-        insertError((*context).errorList, ERR_MEM_ALLOC, lineNum);
-        return FALSE;
+        setFatalError(lineNum, ERR_MEM_ALLOC);
+        return ERROR_FOUND;
     }
 
     strcpy(srcFileName, fileName);
@@ -33,19 +32,20 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
     fp = fopen(srcFileName, "r");
     if (fp == NULL) {
         insertError((*context).errorList, ERR_FILE_OPEN, lineNum);
-        return FALSE;
+        /* Not a fatal error, but must move to the next test file... */
+        return ERROR_FOUND;
     }
 
     while (fgets(line, LINE_SIZE, fp) != NULL) {
         if (fatalError)
-            return FALSE;
+            return ERROR_FOUND;
         lineNum++;
         printf("\nLINE #%d\n", lineNum);
         newSymbolName = NULL;
 
         if (IC + DC > ASSEMBLER_MAX_MEMORY) {
             setFatalError(lineNum, ERR_MEM_ALLOC);
-            return FALSE;
+            return ERROR_FOUND;
         }
 
         if (strlen(line) >= LINE_SIZE - 1) {
@@ -57,12 +57,12 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
         arg = strtok(line, " \t\n");
         printf("The first word is: '%s'\n", arg);
 
-        /* Skip comment lines and empty lines */
-        if (line[0] == ';' || arg == NULL) {
+        /* Skip empty lines and comment lines */
+        if (arg == NULL || line[0] == ';') {
             continue;
         }
 
-        if (isNewSymbol(context, arg)) {
+        if (isNewSymbol(arg, lineNum, &errorFlag, context)) {
             /* replace the colon in the symbol with '\0' */
             colonPos = strchr(arg, ':');
             *colonPos = '\0';
@@ -94,9 +94,10 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
     if (errorFlag) {
         fclose(fp);
         free(srcFileName);
-        return FALSE;
+        return ERROR_FOUND;
     }
 
+    /* Save the final instruction and data counters to be used in second iteration */
     *pICF = IC;
     *pDCF = DC;
 
@@ -107,15 +108,17 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
         dirPtr = (*dirPtr).next;
     }
 
-    /* append dirList to opList to get the full code image */
-    if (opList == NULL) {
-        /* If opList empty, codeImage contains only dirList */
+    /* Increase every directive symbol by ICF, so the symbol table matches the code image addresses */
+    adjustDataSymbolAddresses(*(*context).symbolTable, pICF);
+
+    /* append dirList to opList to put together the full code image */
+    if (opList == NULL && dirList == NULL) {
+        *codeImage = NULL;
+    } else if (opList == NULL) {
         *codeImage = dirList;
     } else {
-        /* If opList not empty, point codeImage to opList */
         *codeImage = opList;
-
-        /* Append dirList to the end of opList */
+        /* Appending dirList to the end of opList */
         opPtr = opList;
         while ((*opPtr).next != NULL) {
             opPtr = (*opPtr).next;
@@ -123,29 +126,33 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
         (*opPtr).next = dirList;
     }
 
-    adjustDataSymbolAddresses(*(*context).symbolTable, pICF);
-
     fclose(fp);
     free(srcFileName);
-    return TRUE;
+    return NO_ERROR_FOUND;
 }
 
-int isNewSymbol(assemblerContext *context, char *str) {
+int isNewSymbol(char *str, int lineNum, int *errorFlag, assemblerContext *context) {
     size_t len = strlen(str);
     /* failsafe to ensure len-1 will always be valid */
     if (len < 1) {
         return FALSE;
     }
-    if (len <= 30 && isalpha(str[0]) && str[len - 1] == ':' && !isKeyword(context, str)) {
+    if (len < SYMBOL_MAX_LENGTH && isalpha(str[0]) && str[len - 1] == ':' &&
+        !isKeyword(str, lineNum, errorFlag, context)) {
         return TRUE;
     }
     return FALSE;
 }
 
-int isKeyword(assemblerContext *context, char *str) {
-    if (searchSymbol(*(*context).symbolTable, str) || searchMacro(*(*context).macroTable, str) ||
-        searchOperation(*(*context).operationTable, str) || searchDirective(*(*context).directiveTable, str) ||
-        searchRegister(*(*context).registers, str)) {
+int isKeyword(char *str, int lineNum, int *errorFlag, assemblerContext *context) {
+    if (searchSymbol(*(*context).symbolTable, str)) {
+        *errorFlag = TRUE;
+        insertError((*context).errorList, ERR_DUPLICATE_SYMBOL, lineNum);
+        return TRUE;
+    } else if (searchMacro(*(*context).macroTable, str) || searchOperation(*(*context).operationTable, str) ||
+               searchDirective(*(*context).directiveTable, str) || searchRegister(*(*context).registers, str)) {
+        *errorFlag = TRUE;
+        insertError((*context).errorList, ERR_RESERVED_NAME, lineNum);
         return TRUE;
     }
     return FALSE;

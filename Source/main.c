@@ -43,8 +43,9 @@ int main(int argc, char *argv[]) {
                     complete = TRUE;
             }
         }
-
-        if (complete == FALSE)
+        if (fatalError) {
+            printf("FATAL ERROR BLABLA");
+        } else if (complete == FALSE)
             displayErrors(errors);
 
         freeSymbolTable(symbolTableHead);
