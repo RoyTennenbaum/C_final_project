@@ -127,11 +127,17 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
   printf(
       "========================================"
       "\n"
-      "Second iteration complete, generating output files..."
+      "Second iteration complete"
       "\n"
       "========================================\n");
 
   if (errorFlag == FALSE) {
+    printf(
+        "========================================"
+        "\n"
+        "Generate output files"
+        "\n"
+        "========================================\n");
     createObjectOutputFile(fileName, codeImage, ICF, DCF);
     if (fatalError) {
       fclose(srcFile);
@@ -175,12 +181,15 @@ void handleEntryLine(char *line, char **entriesContentP, size_t *entriesContentC
   symbol *tempSymbol;
   char *arg;
 
-  arg = strtok(line, " \t");
+  strtok(line, " \t");
+  arg = strtok(NULL, " \t");
+  printf("LABEL: %s\n", arg);
 
   if ((tempSymbol = searchSymbol(*(context->symbolTable), arg)) != NULL) {
     if ((*tempSymbol).type == TYPE_EXTERNAL) {
       insertError((context->errorList), ERR_ENTRY_SYMBOL_DEFINED_EXTERN, lineNum);
       *errorFlagP = TRUE;
+      return;
     } else {
       insertSymbol(entriesTable, arg, (*tempSymbol).address, TYPE_ENTRY, lineNum);
       writeToEntries(*tempSymbol, entriesContentP, entriesContentCapacityP, lineNum,
@@ -189,6 +198,7 @@ void handleEntryLine(char *line, char **entriesContentP, size_t *entriesContentC
   } else {
     insertError((context->errorList), ERR_UNDEFINED_SYMBOL, lineNum);
     *errorFlagP = TRUE;
+    return;
   }
 }
 
