@@ -43,7 +43,6 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
             return ERROR_FOUND;
         }
         lineNum++;
-        printf("\nLINE #%d\n", lineNum);
         newSymbolName = NULL;
 
         if (IC + DC > ASSEMBLER_MAX_MEMORY) {
@@ -61,7 +60,6 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
 
         /* Get the first word in the line */
         arg = strtok(line, " \t\n");
-        printf("The first word is: '%s'\n", arg);
 
         /* Skip empty lines and comment lines */
         if (arg == NULL || line[0] == ';') {
@@ -77,7 +75,6 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
 
             /* Store the next word of the current line in arg */
             arg = strtok(NULL, " \t\n");
-            printf("First word was a symbol. Second word is: '%s'\n", arg);
 
             /* Check if symbol is followed by a directive or an instruction */
             if (arg == NULL) {

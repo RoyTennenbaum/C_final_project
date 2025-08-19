@@ -48,12 +48,10 @@ typedef error *errorList;
 /* Function prototypes */
 void insertSymbol(symbolTable *sHeadP, char *label, int address, symbolType type, int lineNum);
 symbol *searchSymbol(symbolTable sHead, const char *label);
-void displaySymbol(symbolTable sHead); /* for debugging */
 void freeSymbolTable(symbolTable *sHead);
 
-void insertMacro(macroTable *mHeadP, char *label, char *body);
+void insertMacro(macroTable *mHeadP, char *label, char *body, int lineNum);
 macro *searchMacro(macroTable mHead, char *label);
-void displayMacro(macroTable mHead); /* for debugging */
 void freeMacroTable(macroTable *mHead);
 
 void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int kind, int lineNum);

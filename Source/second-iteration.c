@@ -41,30 +41,23 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
 
     while (fgets(line, LINE_SIZE, srcFile) != NULL) {
         lineNum++;
-        printf("LINE #%d\n", lineNum);
         state = UNKNOWN_LINE_TYPE;
         arg = strtok(line, ":\n"); /*extract label if exists*/
-        printf("line/symbol is: %s\n", (arg != NULL) ? arg : "NULL");
 
         if (arg == NULL) {
-            printf("This is an empty line\n");
             state = EMPTY_LINE;
         }
 
         else if (arg[0] == ';') {
-            printf("This is a comment line\n");
             state = COMMENT_LINE;
         }
 
         else if (searchSymbol(*(context->symbolTable), arg) != NULL) {
             arg = strtok(NULL, "\n"); /*skip the label*/
-            printf("It was a symbol. line is: %s\n", arg);
             while (isspace(*arg))
                 arg++;
         }
         /*by now arg points to the line without the label (no '\n' at the end)*/
-
-        printf("Line content: %s\n", arg);
 
         if (state == UNKNOWN_LINE_TYPE) {
             /* extract first word to check if it's a directive */
@@ -72,14 +65,12 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
             strtok(isDir, " \t\n");
 
             if ((tempDirective = searchDirective(*(context->directiveTable), isDir)) != NULL) {
-                printf("Directive found: %s\n", isDir);
                 if ((*tempDirective).type == ENTRY) {
                     state = ENTRY_LINE;
                 } else {
                     state = NON_ENTRY_DIRECTIVE_LINE;
                 }
             } else {
-                printf("Operation found: %s\n", isDir);
                 state = OPERATION_LINE;
             }
         }
@@ -88,11 +79,9 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
         case EMPTY_LINE:
         case COMMENT_LINE:
         case NON_ENTRY_DIRECTIVE_LINE:
-            printf("No processing needed\n");
             continue;
 
         case ENTRY_LINE:
-            printf("processing entry\n");
             handleEntryLine(arg, &entriesContent, &entriesContentCapacity, entriesTable, lineNum, &errorFlag, context);
             if (fatalError) {
                 fclose(srcFile);
@@ -106,7 +95,6 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
             break;
 
         case OPERATION_LINE:
-            printf("processing operation\n");
             handleOperationLine(arg, &currentWordP, &externalsContent, &externalsContentCapacity, lineNum, &errorFlag,
                                 context, entriesTable);
             if (fatalError) {
@@ -128,16 +116,10 @@ int secondIteration(char *fileName, int ICF, int DCF, binaryWordList *codeImage,
         printf("\n");
     }
 
-    printf("========================================"
-           "\n"
-           "Second iteration complete"
-           "\n"
-           "========================================\n");
-
     if (errorFlag == FALSE) {
-        printf("========================================"
+        printf("\n========================================"
                "\n"
-               "Generate output files"
+               "Generating output files"
                "\n"
                "========================================\n");
         createObjectOutputFile(fileName, codeImage, ICF, DCF);
@@ -192,7 +174,6 @@ void handleEntryLine(char *line, char **entriesContentP, size_t *entriesContentC
 
     strtok(line, " \t");
     arg = strtok(NULL, " \t");
-    printf("LABEL: %s\n", arg);
 
     if ((tempSymbol = searchSymbol(*(context->symbolTable), arg)) != NULL) {
         if ((*tempSymbol).type == TYPE_EXTERNAL) {
@@ -246,13 +227,6 @@ void writeToEntries(const symbol symbol, char **entriesContentP, size_t *entries
     strcat(*entriesContentP, "\t");
     strcat(*entriesContentP, symbol.label);
 
-    printf("========================================"
-           "\n"
-           "Current entries content:"
-           "\n"
-           "========================================\n%s\n",
-           *entriesContentP);
-
     free(addressStr);
 }
 
@@ -270,7 +244,6 @@ void handleOperationLine(char *line, binaryWordNode **opWordP, char **externalsC
     case ADD:
     case SUB:
     case LEA:
-        printf("Opcode: %u - processing two-operand operation\n", opCode);
         handleTwoOperandOpCode(line, opWordP, externalsContentP, externalsContentCapacityP, srcAddressMethod,
                                destAddressMethod, lineNum, errorFlagP, context, entriesTable);
         if (fatalError)
@@ -286,7 +259,6 @@ void handleOperationLine(char *line, binaryWordNode **opWordP, char **externalsC
     case RED:
     case PRN:
     case JSR:
-        printf("Opcode: %u - one-operand operation\n", opCode);
         handleOneOperandOpCode(line, opWordP, externalsContentP, externalsContentCapacityP, destAddressMethod, lineNum,
                                errorFlagP, context, entriesTable);
         if (fatalError)
@@ -295,7 +267,6 @@ void handleOperationLine(char *line, binaryWordNode **opWordP, char **externalsC
 
     case RTS:
     case STP:
-        printf("The opcode is: %u. No-operand operation - no processing is needed\n ", opCode);
         break;
 
     default:
@@ -316,27 +287,11 @@ void handleTwoOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
     label2 = strtok(NULL, " \t");
     strtok(label1, "[,");
     strtok(label2, "[");
-    printf("LABEL1: %s\n", label1);
-    printf("LABEL2: %s\n", label2);
-
-    printf("========================================"
-           "\n"
-           "On Word: C = %d,\tL=%d"
-           "\n"
-           "========================================\n",
-           (*opWordP)->C, (*opWordP)->L);
 
     /*advace to first payload word*/
     if ((*opWordP)->next != NULL) {
         *opWordP = (*opWordP)->next;
     }
-
-    printf("========================================"
-           "\n"
-           "On Word: C = %d,\tL=%d"
-           "\n"
-           "========================================\n",
-           (*opWordP)->C, (*opWordP)->L);
 
     if (srcAddressMethod == DIRECT_ADDRESS_ENCODING || srcAddressMethod == MATRIX_ADDRESS_ENCODING) {
         encodeOpPayloadWord(label1, *opWordP, externalsContentP, externalsContentCapacityP, srcAddressMethod, lineNum,
@@ -347,7 +302,6 @@ void handleTwoOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
 
     if (srcAddressMethod == MATRIX_ADDRESS_ENCODING) {
         if ((*opWordP)->next != NULL && (*opWordP)->next->next != NULL) {
-            printf("this is matrix addressing - skipping 2 words\n");
             *opWordP = (*opWordP)->next->next;
         } else {
             /*assembler memory management failure: missing required words */
@@ -358,7 +312,6 @@ void handleTwoOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
 
     else {
         if ((*opWordP)->next != NULL) {
-            printf("this is non-matrix addressing - skipping 1 word\n");
             *opWordP = (*opWordP)->next;
         } else {
             /*assembler memory management failure: missing required words */
@@ -366,12 +319,6 @@ void handleTwoOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
             return;
         }
     }
-    printf("========================================"
-           "\n"
-           "On Word: C = %d,\tL=%d"
-           "\n"
-           "========================================\n",
-           (*opWordP)->C, (*opWordP)->L);
 
     if (destAddressMethod == DIRECT_ADDRESS_ENCODING || destAddressMethod == MATRIX_ADDRESS_ENCODING) {
         encodeOpPayloadWord(label2, *opWordP, externalsContentP, externalsContentCapacityP, destAddressMethod, lineNum,
@@ -382,7 +329,6 @@ void handleTwoOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
 
     if (destAddressMethod == MATRIX_ADDRESS_ENCODING) {
         if ((*opWordP)->next != NULL && (*opWordP)->next->next != NULL) {
-            printf("this is matrix addressing - skipping 2 words\n");
             *opWordP = (*opWordP)->next->next;
         } else {
             /*assembler memory management failure: missing required words */
@@ -393,7 +339,6 @@ void handleTwoOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
 
     else if (srcAddressMethod != REGISTER_ADDRESS_ENCODING || destAddressMethod != REGISTER_ADDRESS_ENCODING) {
         if ((*opWordP)->next != NULL) {
-            printf("this is matrix addressing - skipping 1 word\n");
             *opWordP = (*opWordP)->next;
         } else {
             /*assembler memory management failure: missing required words */
@@ -401,12 +346,6 @@ void handleTwoOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
             return;
         }
     }
-    printf("========================================"
-           "\n"
-           "On Word: C = %d,\tL=%d"
-           "\n"
-           "========================================\n",
-           (*opWordP)->C, (*opWordP)->L);
 }
 
 void handleOneOperandOpCode(char *line, binaryWordNode **opWordP, char **externalsContentP,
@@ -418,26 +357,10 @@ void handleOneOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
     label = strtok(NULL, " \t");
     strtok(label, " \t[");
 
-    printf("LABEL: %s\n", label);
-
-    printf("========================================"
-           "\n"
-           "On Word: C = %d,\tL=%d"
-           "\n"
-           "========================================\n",
-           (*opWordP)->C, (*opWordP)->L);
-
     /*advace to the first payload word*/
     if ((*opWordP)->next != NULL) {
         *opWordP = (*opWordP)->next;
     }
-
-    printf("========================================"
-           "\n"
-           "On Word: C = %d,\tL=%d"
-           "\n"
-           "========================================\n",
-           (*opWordP)->C, (*opWordP)->L);
 
     if (destAddressMethod == DIRECT_ADDRESS_ENCODING || destAddressMethod == MATRIX_ADDRESS_ENCODING) {
         encodeOpPayloadWord(label, *opWordP, externalsContentP, externalsContentCapacityP, destAddressMethod, lineNum,
@@ -448,7 +371,6 @@ void handleOneOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
 
     if (destAddressMethod == MATRIX_ADDRESS_ENCODING) {
         if ((*opWordP)->next != NULL && (*opWordP)->next->next != NULL) {
-            printf("this is matrix addressing - skipping 2 words\n");
             *opWordP = (*opWordP)->next->next;
         } else {
             /*assembler memory management failure: missing required words */
@@ -459,7 +381,6 @@ void handleOneOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
 
     else {
         if ((*opWordP)->next != NULL) {
-            printf("this is matrix addressing - skipping 1 word\n");
             *opWordP = (*opWordP)->next;
         } else {
             /*assembler memory management failure: missing required words */
@@ -467,12 +388,6 @@ void handleOneOperandOpCode(char *line, binaryWordNode **opWordP, char **externa
             return;
         }
     }
-    printf("========================================"
-           "\n"
-           "On Word: C = %d,\tL=%d"
-           "\n"
-           "========================================\n",
-           (*opWordP)->C, (*opWordP)->L);
 }
 void encodeOpPayloadWord(const char *label, binaryWordNode *currentWordP, char **externalsContentP,
                          size_t *externalsContentCapacityP, const unsigned addressMethod, const int lineNum,
@@ -561,13 +476,6 @@ void writeToExternals(const char *label, const binaryWordNode *currentWordP, cha
     strcat(*externalsContentP, addressStr);
     strcat(*externalsContentP, "\t");
     strcat(*externalsContentP, label);
-
-    printf("========================================"
-           "\n"
-           "Current externals content:"
-           "\n"
-           "========================================\n%s\n",
-           *externalsContentP);
 
     free(addressStr);
 }
@@ -682,7 +590,6 @@ void createObjectOutputFile(const char *fileName, const binaryWordList *codeImag
         }
 
         sprintf(buffer, "%s\t%s\n", addressStr, wordStr);
-        printf("The line is: %s", buffer);
         fputs(buffer, objectFile);
 
         currentWordP = currentWordP->next;
@@ -779,7 +686,6 @@ char *intToBase4(unsigned int integer, int rep, int lineNum) {
 
     else {
         while (integer) {
-            printf("%d -> ", integer);
             length++;
             temp = realloc(result, length + 1);
 
@@ -791,7 +697,6 @@ char *intToBase4(unsigned int integer, int rep, int lineNum) {
             }
             result = temp;
             digit = 'a' + integer % 4;
-            printf("%c\n", digit);
 
             result[length - 1] = digit;
             integer /= 4;

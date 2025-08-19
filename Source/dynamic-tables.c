@@ -10,7 +10,6 @@
 void insertSymbol(symbolTable *sHeadP, char *label, int address, symbolType type, int lineNum) {
     symbol *ptr = NULL;
     symbol *newSymbol = NULL;
-    int success = FALSE;
 
     /* Allocate memory for new node in the list */
     newSymbol = (symbol *)malloc(sizeof(symbol));
@@ -31,7 +30,6 @@ void insertSymbol(symbolTable *sHeadP, char *label, int address, symbolType type
         /* If the list was empty insert as first node */
         if (*sHeadP == NULL) {
             *sHeadP = newSymbol;
-            success = TRUE;
         } else { /* Else, insert as last node of the list */
             ptr = *sHeadP;
 
@@ -40,15 +38,8 @@ void insertSymbol(symbolTable *sHeadP, char *label, int address, symbolType type
             }
 
             (*ptr).next = newSymbol;
-            success = TRUE;
         }
     }
-
-    if (success) {
-        printf("Symbol inserted: label=%s, address=%d, type=%d\n", (*newSymbol).label, (*newSymbol).address,
-               (*newSymbol).type);
-    }
-    displaySymbol(*sHeadP);
 }
 
 /**
@@ -68,22 +59,6 @@ symbol *searchSymbol(symbolTable sHead, const char *label) {
     return NULL;
 }
 
-void displaySymbol(symbolTable sHead) {
-    symbol *ptr = sHead;
-    int i = 1;
-
-    if (ptr == NULL) {
-        printf("Linked list is empty.\n");
-    } else {
-        printf("Sr. No.\t\tAddress\t\tInfo\t\tNext\n");
-        while (ptr != NULL) {
-            printf("%d.\t\t%p\t%s\t\t%p\n", i, (void *)ptr, ptr->label, (void *)ptr->next);
-            ptr = ptr->next;
-            i++;
-        }
-    }
-}
-
 void freeSymbolTable(symbolTable *sHead) {
     symbol *ptr = *sHead;
     while (ptr) {
@@ -95,28 +70,34 @@ void freeSymbolTable(symbolTable *sHead) {
     *sHead = NULL;
 }
 
-void insertMacro(macroTable *mHeadP, char *label, char *body) {
+void insertMacro(macroTable *mHeadP, char *label, char *body, int lineNum) {
     macro *ptr = NULL;
     macro *newMacro = NULL;
-    int success = FALSE;
 
     /* Allocate memory for new node in the list */
     newMacro = (macro *)malloc(sizeof(macro));
     /* Check if memory allocation was successful */
     if (newMacro == NULL) {
-        printf("Memory allocation failed!\n");
+        setFatalError(lineNum, ERR_MEM_ALLOC);
     } else {
         /* Insert all node data in the allocated space */
         (*newMacro).label = malloc(strlen(label) + 1);
-        strcpy((*newMacro).label, label);
+        if ((*newMacro).label == NULL)
+            setFatalError(lineNum, ERR_MEM_ALLOC);
+        else
+            strcpy((*newMacro).label, label);
+
         (*newMacro).body = malloc(strlen(body) + 1);
-        strcpy((*newMacro).body, body);
+        if ((*newMacro).body == NULL)
+            setFatalError(lineNum, ERR_MEM_ALLOC);
+        else
+            strcpy((*newMacro).body, body);
+
         (*newMacro).next = NULL;
 
         /* If the list was empty insert as first node */
         if (*mHeadP == NULL) {
             *mHeadP = newMacro;
-            success = TRUE;
         } else { /* Else, insert as last node of the list */
             ptr = *mHeadP;
 
@@ -125,12 +106,7 @@ void insertMacro(macroTable *mHeadP, char *label, char *body) {
             }
 
             (*ptr).next = newMacro;
-            success = TRUE;
         }
-    }
-
-    if (success) {
-        printf("Macro inserted: label=%s, body:\n%s\n", newMacro->label, newMacro->body);
     }
 }
 
@@ -149,22 +125,6 @@ macro *searchMacro(macroTable mHead, char *label) {
         ptr = (*ptr).next;
     }
     return NULL;
-}
-
-void displayMacro(macroTable mHead) {
-    macro *ptr = mHead;
-    int i = 1;
-
-    if (ptr == NULL) {
-        printf("Linked list is empty.\n");
-    } else {
-        printf("Sr. No.\t\tAddress\t\tInfo\t\tNext\n");
-        while (ptr != NULL) {
-            printf("%d.\t\t%p\t%s\t\t%p\n", i, (void *)ptr, ptr->label, (void *)ptr->next);
-            ptr = ptr->next;
-            i++;
-        }
-    }
 }
 
 void freeMacroTable(macroTable *mHead) {
@@ -211,10 +171,6 @@ void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int k
     } else {
         (*prev).next = newNode;
     }
-
-    /* for debugging */
-    printf("Word inserted: word=%u, kind=%d, C=%d, L=%d\n", *(unsigned int *)&(*newNode).binaryWord, (*newNode).kind,
-           (*newNode).C, (*newNode).L);
 }
 
 void freeBinaryWordList(binaryWordList *bHead) {
@@ -230,7 +186,6 @@ void freeBinaryWordList(binaryWordList *bHead) {
 void insertError(errorList *eHeadP, errorType type, int lineNum) {
     error *ptr = NULL;
     error *newError = NULL;
-    int success = FALSE;
 
     /* Allocate memory for new node in the list */
     newError = (error *)malloc(sizeof(error));
@@ -247,7 +202,6 @@ void insertError(errorList *eHeadP, errorType type, int lineNum) {
         /* If the list was empty insert as first node */
         if (*eHeadP == NULL) {
             *eHeadP = newError;
-            success = TRUE;
         } else { /* Else, insert as last node of the list */
             ptr = *eHeadP;
 
@@ -256,12 +210,7 @@ void insertError(errorList *eHeadP, errorType type, int lineNum) {
             }
 
             (*ptr).next = newError;
-            success = TRUE;
         }
-    }
-
-    if (success) {
-        printf("Error inserted: type=%d, lineNum=%d\n", newError->errType, newError->lineNum);
     }
 }
 

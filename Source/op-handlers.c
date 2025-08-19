@@ -8,9 +8,7 @@ void handleOperation(const operation *op, int *IC, char *symbolName, binaryWordL
                      int *errorFlag, assemblerContext *context) {
     char *operand1, *operand2;
     operand1 = strtok(NULL, ", \t\n");
-    printf("First operand is: '%s' \n", operand1);
     operand2 = strtok(NULL, ", \t\n");
-    printf("Second operand is: '%s' \n", operand2);
 
     if (symbolName != NULL) {
         insertSymbol((*context).symbolTable, symbolName, *IC, TYPE_CODE, lineNum);
@@ -131,9 +129,7 @@ void encodeOpFirstWord(const operation *op, const char *operand1, const char *op
 
     if (operand1 && operand2) {
         *pMethod1 = getExpectedAddressMethod(context, operand1);
-        printf("method1: %d\n", *pMethod1);
         *pMethod2 = getExpectedAddressMethod(context, operand2);
-        printf("method2: %d\n", *pMethod2);
 
         if (*pMethod1 == INVALID || *pMethod2 == INVALID) {
             *errorFlag = TRUE;
@@ -159,7 +155,6 @@ void encodeOpFirstWord(const operation *op, const char *operand1, const char *op
     } else if (operand1) {
         *pMethod1 = 0;
         *pMethod2 = getExpectedAddressMethod(context, operand1);
-        printf("method2: %d\n", *pMethod2);
 
         if (*pMethod2 == INVALID) {
             *errorFlag = TRUE;

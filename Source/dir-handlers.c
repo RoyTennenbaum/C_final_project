@@ -77,7 +77,6 @@ void encodeDataDir(const directive *dir, int *DC, binaryWordList *dirList, int l
     arg = strtok(restOfLine, ", \t\n");
 
     while (arg != NULL) {
-        printf("arg is: %s\n", arg);
         errno = 0;
         /* Store strtol result */
         longNum = strtol(arg, &pEnd, DECIMAL);
@@ -124,7 +123,6 @@ void encodeStrDir(const directive *dir, int *DC, binaryWordList *dirList, int li
     int L = 0, i;
     char *param = strtok(NULL, " \t\n");
     size_t len;
-    printf("The string to encode is: %s\n", param);
 
     if (!param) {
         *errorFlag = TRUE;
@@ -260,15 +258,12 @@ void encodeMatDir(const directive *dir, int *DC, binaryWordList *dirList, int li
 int areDataArgsValid(const char *line) {
     const char *c = line;
 
-    printf("Validating line: '%s' (length: %d)\n", line, (int)strlen(line));
-
     /* Skip leading spaces */
     while (isspace((unsigned char)*c))
         c++;
 
     /* Must start with a digit or sign */
     if (!isdigit((unsigned char)*c) && *c != '+' && *c != '-') {
-        printf("ERR 1");
         return FALSE;
     }
 
@@ -279,7 +274,6 @@ int areDataArgsValid(const char *line) {
 
         /* Must have digits */
         if (!isdigit((unsigned char)*c)) {
-            printf("ERR 2");
             return FALSE;
         }
 
@@ -295,7 +289,6 @@ int areDataArgsValid(const char *line) {
             return TRUE;
 
         if (*c != ',') {
-            printf("ERR 3");
             return FALSE;
         }
 
@@ -308,7 +301,6 @@ int areDataArgsValid(const char *line) {
 
         /* After a comma must come a sign or digit */
         if (!isdigit((unsigned char)*c) && *c != '+' && *c != '-') {
-            printf("ERR 4");
             return FALSE;
         }
     }
