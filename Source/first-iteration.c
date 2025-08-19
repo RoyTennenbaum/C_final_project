@@ -37,20 +37,26 @@ int firstIteration(char *fileName, int *pICF, int *pDCF, binaryWordList *codeIma
     }
 
     while (fgets(line, LINE_SIZE, fp) != NULL) {
-        if (fatalError)
+        if (fatalError) {
+            fclose(fp);
+            free(srcFileName);
             return ERROR_FOUND;
+        }
         lineNum++;
         printf("\nLINE #%d\n", lineNum);
         newSymbolName = NULL;
 
         if (IC + DC > ASSEMBLER_MAX_MEMORY) {
             setFatalError(lineNum, ERR_MEM_ALLOC);
+            fclose(fp);
+            free(srcFileName);
             return ERROR_FOUND;
         }
 
         if (strlen(line) >= LINE_SIZE - 1) {
             insertError((*context).errorList, ERR_LINE_TOO_LONG, lineNum);
             errorFlag = TRUE;
+            continue;
         }
 
         /* Get the first word in the line */

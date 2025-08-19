@@ -20,7 +20,10 @@ void insertSymbol(symbolTable *sHeadP, char *label, int address, symbolType type
     } else {
         /* Insert all node data in the allocated space */
         (*newSymbol).label = malloc(strlen(label) + 1);
-        strcpy((*newSymbol).label, label);
+        if ((*newSymbol).label == NULL) {
+            setFatalError(lineNum, ERR_MEM_ALLOC);
+        } else
+            strcpy((*newSymbol).label, label);
         (*newSymbol).address = address;
         (*newSymbol).type = type;
         (*newSymbol).next = NULL;
@@ -81,14 +84,15 @@ void displaySymbol(symbolTable sHead) {
     }
 }
 
-void freeSymbolTable(symbolTable sHead) {
-    symbol *ptr = sHead;
+void freeSymbolTable(symbolTable *sHead) {
+    symbol *ptr = *sHead;
     while (ptr) {
         symbol *next = (*ptr).next;
         free((*ptr).label);
         free(ptr);
         ptr = next;
     }
+    *sHead = NULL;
 }
 
 void insertMacro(macroTable *mHeadP, char *label, char *body) {
@@ -163,8 +167,8 @@ void displayMacro(macroTable mHead) {
     }
 }
 
-void freeMacroTable(macroTable mHead) {
-    macro *ptr = mHead;
+void freeMacroTable(macroTable *mHead) {
+    macro *ptr = *mHead;
     while (ptr) {
         macro *next = (*ptr).next;
         free((*ptr).label);
@@ -172,6 +176,7 @@ void freeMacroTable(macroTable mHead) {
         free(ptr);
         ptr = next;
     }
+    *mHead = NULL;
 }
 
 void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int kind, int lineNum) {
@@ -188,7 +193,7 @@ void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int k
     /* Allocate memory for new node in the list */
     newNode = malloc(sizeof(*newNode));
     /* Check if memory allocation was successful */
-    if (!newNode) {
+    if (newNode == NULL) {
         setFatalError(lineNum, ERR_MEM_ALLOC);
         return;
     }
@@ -212,13 +217,14 @@ void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int k
            (*newNode).C, (*newNode).L);
 }
 
-void freeBinaryWordList(binaryWordList bHead) {
-    binaryWordNode *ptr = bHead;
+void freeBinaryWordList(binaryWordList *bHead) {
+    binaryWordNode *ptr = *bHead;
     while (ptr) {
         binaryWordNode *next = (*ptr).next;
         free(ptr);
         ptr = next;
     }
+    *bHead = NULL;
 }
 
 void insertError(errorList *eHeadP, errorType type, int lineNum) {
@@ -230,7 +236,8 @@ void insertError(errorList *eHeadP, errorType type, int lineNum) {
     newError = (error *)malloc(sizeof(error));
     /* Check if memory allocation was successful */
     if (newError == NULL) {
-        printf("Error: failed to allocate memory\n");
+        setFatalError(lineNum, ERR_MEM_ALLOC);
+        return;
     } else {
         /* Insert all node data in the allocated space */
         (*newError).errType = type;
@@ -277,11 +284,12 @@ void displayErrors(errorList eHead) {
     printf("==================================================\n\n");
 }
 
-void freeErrorList(errorList eHead) {
-    error *ptr = eHead;
+void freeErrorList(errorList *eHead) {
+    error *ptr = *eHead;
     while (ptr) {
         error *next = (*ptr).next;
         free(ptr);
         ptr = next;
     }
+    *eHead = NULL;
 }

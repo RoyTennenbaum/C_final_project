@@ -2,8 +2,8 @@
 #include "../Headers/main.h"
 
 int main(int argc, char *argv[]) {
-    symbolTable symbolTableHead;
-    macroTable macroTableHead;
+    symbolTable symbolTableHead = NULL;
+    macroTable macroTableHead = NULL;
 
     static const operationTable opTable = {{"mov", MOV}, {"cmp", CMP}, {"add", ADD}, {"sub", SUB},
                                            {"not", NOT}, {"clr", CLR}, {"lea", LEA}, {"inc", INC},
@@ -13,14 +13,14 @@ int main(int argc, char *argv[]) {
         {".data", DATA}, {".string", STRING}, {".mat", MAT}, {".entry", ENTRY}, {".extern", EXTERN}};
     static const registers regs = {{"r0", 0}, {"r1", 1}, {"r2", 2}, {"r3", 3},
                                    {"r4", 4}, {"r5", 5}, {"r6", 6}, {"r7", 7}};
-    errorList errors;
+    errorList errors = NULL;
 
     assemblerContext context;
-    binaryWordList codeImage;
+    binaryWordList codeImage = NULL;
     symbolTable entriesTable = NULL;
     static int ICF, DCF;
     int i;
-    int complete;
+    int fileSuccess, mainSuccess = 0;
 
     context.symbolTable = &symbolTableHead;
     context.macroTable = &macroTableHead;
@@ -30,30 +30,27 @@ int main(int argc, char *argv[]) {
     context.errorList = &errors;
 
     for (i = 1; i < argc; i++) {
-        symbolTableHead = NULL;
-        macroTableHead = NULL;
-        errors = NULL;
-        codeImage = NULL;
-        /* Was the process successful? */
-        complete = FALSE;
+        fileSuccess = FALSE;
 
         if (preAssembler(argv[i], &context)) {
             if (firstIteration(argv[i], &ICF, &DCF, &codeImage, &context)) {
                 if (secondIteration(argv[i], ICF, DCF, &codeImage, &context, &entriesTable))
-                    complete = TRUE;
+                    fileSuccess = TRUE;
             }
         }
-        if (fatalError) {
-            printf("FATAL ERROR BLABLA");
-        } else if (complete == FALSE)
+
+        if (fileSuccess == FALSE) {
             displayErrors(errors);
+            mainSuccess = 1;
+        }
 
-        freeSymbolTable(symbolTableHead);
-        freeMacroTable(macroTableHead);
-        freeBinaryWordList(codeImage);
-        freeErrorList(errors);
+        freeSymbolTable(&symbolTableHead);
+        freeMacroTable(&macroTableHead);
+        freeBinaryWordList(&codeImage);
+        freeErrorList(&errors);
     }
-    freeSymbolTable(entriesTable);
+    freeSymbolTable(&entriesTable);
 
-    return 0;
+    /* Conventionally, main returns 0 when successful :) */
+    return (mainSuccess || fatalError) ? 1 : 0;
 }

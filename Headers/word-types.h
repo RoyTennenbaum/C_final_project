@@ -4,6 +4,7 @@
 /* Properties to differentiate between different word categories */
 typedef enum { DIR, OP_FIRST, PAYLOAD, REG_PAIR } wordKind;
 
+/* Format of every directive word */
 typedef struct {
     unsigned int data_bits : 10;
 } directiveWord;

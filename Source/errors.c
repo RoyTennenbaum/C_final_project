@@ -61,12 +61,15 @@ const char *getErrMessage(errorType type) {
     case ERR_INVALID_INTEGER:
         return "One or more of the params is not a legal integer";
     case ERR_NUMBER_OUT_OF_RANGE:
-        return "Number out of valid range";
+        return "Number not in valid range";
     case ERR_INVALID_NUMBER_FORMAT:
         return "Invalid number format";
 
     case ERR_DIR_NO_PARAM:
         return "No parameter following the directive";
+
+    case ERR_DATA_INVALID_FORMAT:
+        return "Invalid \"integer -> comma -> integer\" format of \".data\" parameters";
 
     case ERR_STR_TOO_MANY_PARAMS:
         return "Only one parameter allowed for '.string' directive";

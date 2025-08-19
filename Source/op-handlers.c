@@ -138,6 +138,7 @@ void encodeOpFirstWord(const operation *op, const char *operand1, const char *op
         if (*pMethod1 == INVALID || *pMethod2 == INVALID) {
             *errorFlag = TRUE;
             insertError((*context).errorList, ERR_INVALID_ADDRESSING_METHOD, lineNum);
+            return;
         }
 
         /* handle special invalid addressing method cases (table in page 35 of the course pdf) */

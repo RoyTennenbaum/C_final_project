@@ -49,15 +49,18 @@ typedef error *errorList;
 void insertSymbol(symbolTable *sHeadP, char *label, int address, symbolType type, int lineNum);
 symbol *searchSymbol(symbolTable sHead, const char *label);
 void displaySymbol(symbolTable sHead); /* for debugging */
-void freeSymbolTable(symbolTable sHead);
+void freeSymbolTable(symbolTable *sHead);
+
 void insertMacro(macroTable *mHeadP, char *label, char *body);
 macro *searchMacro(macroTable mHead, char *label);
 void displayMacro(macroTable mHead); /* for debugging */
-void freeMacroTable(macroTable mHead);
+void freeMacroTable(macroTable *mHead);
+
 void insertBinaryWord(binaryWordList *bHeadP, int C, int L, WordType word, int kind, int lineNum);
-void freeBinaryWordList(binaryWordList bHead);
+void freeBinaryWordList(binaryWordList *bHead);
+
 void insertError(errorList *eHeadP, errorType type, int lineNum);
 void displayErrors(errorList eHead);
-void freeErrorList(errorList eHead);
+void freeErrorList(errorList *eHead);
 
 #endif

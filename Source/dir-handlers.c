@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "../Headers/dir-handlers.h"
 
 void handleDirective(const directive *dir, int *DC, char *symbolName, binaryWordList *dirList, int lineNum,
@@ -29,17 +30,18 @@ void handleDirective(const directive *dir, int *DC, char *symbolName, binaryWord
         break;
 
     case ENTRY:
-        /* handled in second iteration */
+        /* Handled in second iteration */
         break;
 
     case EXTERN:
         if (symbolName != NULL) {
             insertSymbol((*context).symbolTable, symbolName, 0, TYPE_EXTERNAL, lineNum);
         }
+        /* Other than adding symbol to table, it is handled in second iteration */
         break;
 
     default:
-        /* ERROR */
+        setFatalError(lineNum, ERR_INTERNAL);
         break;
     }
 }
@@ -47,42 +49,71 @@ void handleDirective(const directive *dir, int *DC, char *symbolName, binaryWord
 void encodeDataDir(const directive *dir, int *DC, binaryWordList *dirList, int lineNum, int *errorFlag,
                    assemblerContext *context) {
     WordType word;
+    int values[DATA_PARAMS_BUF];
+    int count = 0, i = 0;
     int L = 0;
-    char *arg;
-    while ((arg = strtok(NULL, ", \t\n")) != NULL) {
-        int i = 0, num;
-        size_t len = strlen(arg);
 
+    /* Parse helpers */
+    char *restOfLine, *arg, *pEnd;
+    long longNum;
+    int num;
+
+    /* Get pointer to rest of the line (for pre-checks for comma errors) */
+    restOfLine = strtok(NULL, "\n");
+    if (!restOfLine) {
+        *errorFlag = TRUE;
+        insertError(context->errorList, ERR_DIR_NO_PARAM, lineNum);
+        return;
+    }
+
+    /* Validate numbers and comma locations */
+    if (!areDataArgsValid(restOfLine)) {
+        *errorFlag = TRUE;
+        insertError(context->errorList, ERR_DATA_INVALID_FORMAT, lineNum);
+        return;
+    }
+
+    /* Reset strtok to parse normally on commas and spaces */
+    arg = strtok(restOfLine, ", \t\n");
+
+    while (arg != NULL) {
+        printf("arg is: %s\n", arg);
+        errno = 0;
+        /* Store strtol result */
+        longNum = strtol(arg, &pEnd, DECIMAL);
+
+        /* Check for any invalid characters */
+        if (*pEnd != '\0') {
+            *errorFlag = TRUE;
+            insertError(context->errorList, ERR_INVALID_INTEGER, lineNum);
+            return;
+        }
+
+        if (errno == ERANGE || longNum < SIGNED_10_BIT_MIN || longNum > SIGNED_10_BIT_MAX) {
+            *errorFlag = TRUE;
+            insertError(context->errorList, ERR_NUMBER_OUT_OF_RANGE, lineNum);
+            return;
+        }
+
+        /* Cast from long to int and store num */
+        num = (int)longNum;
+        values[count++] = num;
+
+        arg = strtok(NULL, ", \t\n");
+    }
+
+    for (; i < count; i++) {
         /* Initialize the 'WordType' union with zeros */
         memset(&word, 0, sizeof(word));
+        word.dir.data_bits = (unsigned int)values[i];
 
-        if (arg[i] == '+' || arg[i] == '-') /* allow +/- signs */
-            i++;
-
-        for (; i < len; i++) {
-            if (!isdigit((unsigned char)arg[i])) {
-                *errorFlag = TRUE;
-                insertError((*context).errorList, ERR_INVALID_INTEGER, lineNum);
-                return;
-            }
-        }
-        num = atoi(arg);
-
-        /* Check valid signed 10-bit range */
-        if (num < SIGNED_10_BIT_MIN || num > SIGNED_10_BIT_MAX) {
-            *errorFlag = TRUE;
-            insertError((*context).errorList, ERR_NUMBER_OUT_OF_RANGE, lineNum);
+        insertBinaryWord(dirList, *DC, i, word, DIR, lineNum);
+        if (fatalError)
             return;
-        } else {
-            word.dir.data_bits = (unsigned int)num;
 
-            insertBinaryWord(dirList, *DC, L, word, DIR, lineNum);
-            if (fatalError)
-                return;
-            else
-                L++;
-        }
+        L++;
     }
+
     /* increase DC by the number of data words the instruction occupies */
     (*DC) += L;
 }
@@ -224,4 +255,63 @@ void encodeMatDir(const directive *dir, int *DC, binaryWordList *dirList, int li
 
     /* increase DC by the number of data words the instruction occupies */
     (*DC) += L;
+}
+
+int areDataArgsValid(const char *line) {
+    const char *c = line;
+
+    printf("Validating line: '%s' (length: %d)\n", line, (int)strlen(line));
+
+    /* Skip leading spaces */
+    while (isspace((unsigned char)*c))
+        c++;
+
+    /* Must start with a digit or sign */
+    if (!isdigit((unsigned char)*c) && *c != '+' && *c != '-') {
+        printf("ERR 1");
+        return FALSE;
+    }
+
+    while (*c) {
+        /* Skip sign if there is */
+        if (*c == '+' || *c == '-')
+            c++;
+
+        /* Must have digits */
+        if (!isdigit((unsigned char)*c)) {
+            printf("ERR 2");
+            return FALSE;
+        }
+
+        while (isdigit((unsigned char)*c))
+            c++;
+
+        /* Skip spaces after number */
+        while (isspace((unsigned char)*c))
+            c++;
+
+        /* Finished running successfully */
+        if (*c == '\0')
+            return TRUE;
+
+        if (*c != ',') {
+            printf("ERR 3");
+            return FALSE;
+        }
+
+        /* Skip first comma between numbers */
+        c++;
+
+        /* Skip spaces after comma */
+        while (isspace((unsigned char)*c))
+            c++;
+
+        /* After a comma must come a sign or digit */
+        if (!isdigit((unsigned char)*c) && *c != '+' && *c != '-') {
+            printf("ERR 4");
+            return FALSE;
+        }
+    }
+
+    return TRUE;
 }
