@@ -21,7 +21,7 @@ LENGTH: .data 0
 CHAR_COUNT: .data 0
         
 ; Check current character
-CHECK:  CHECK_CHAR
+CHECK:  cmp #90, r6
 .entry CHECK
 ; Move to previous character
         dec LENGTH
@@ -33,5 +33,5 @@ RESULT: .string "Count:"
 ; Output final count
         prn RESULT
         prn CHAR_COUNT
-        stp
+        stop
 .entry CHAR_COUNT

@@ -20,7 +20,7 @@ SEARCH: mov ARRAY[#1], r3
         cmp r3, r2
 FOUND: .data 0
 ; Branch if not equal
-        bne NOT_MATCH
+        bne FOUND
 ; Set found flag
         mov #1, FOUND
 .entry FOUND

@@ -7,16 +7,15 @@ mcroend
 
 ; Element loading macro
 mcro LOAD_ELEMENT
-        CALC_POSITION
         mov MATRIX[r1][r2], VALUE
 mcroend
 
 ; Set matrix coordinates
         mov #1, ROW_VAL
         mov #2, COL_VAL
-MATRIX: .mat 1, 2, 3, 4, 5, 6
-ROW_VAL: .data 0
-COL_VAL: .data 0
+MATRIX: .mat [2][3] 1, 2, 3, 4, 5, 6
+ROW_VAL: .data 3
+COL_VAL: .data 3
 INDEX: .data 0
 
 ; Load matrix element
@@ -25,5 +24,5 @@ INDEX: .data 0
 VALUE: .data 0
 ; Display the loaded value
         prn VALUE
-        stp
+        stop
 .entry VALUE
