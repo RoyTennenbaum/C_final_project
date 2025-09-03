@@ -26,7 +26,7 @@ enum {
   NON_ENTRY_DIRECTIVE_LINE,
   ENTRY_LINE,
   OPERATION_LINE
-} lineType;
+};
 
 enum { ADDRESS_REP, CODE_REP, COUNTER_REP } reps;
 
